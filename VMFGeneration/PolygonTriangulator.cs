@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Linq;
+using VMFGenerator;
 
 namespace VMFConverter
 {
@@ -65,6 +66,7 @@ namespace VMFConverter
             List<Vector2> remainingValues = new List<Vector2>(Polygon);
             List<List<Vector2>> result = new List<List<Vector2>>();
 
+            int c2 = 0;
             int c = 0;
             int index = -1;
             bool triangleMade = true;
@@ -90,23 +92,99 @@ namespace VMFConverter
 
                     Vector2 abNormal = Vector2.Normalize(Shape.GetNormal2D(prev, curr));
                     Vector2 bcNormal = Vector2.Normalize(Shape.GetNormal2D(curr, next));
-                    Vector2 vertexNormalabcInner = -Vector2.Normalize((abNormal + bcNormal)) * 100;
+                    //Vector2 vertexNormalabcInner = -Vector2.Normalize((abNormal + bcNormal)) * 100;
+                    //
+                    //Vector2 abDir = Vector2.Normalize((prev + abNormal) - (curr + vertexNormalabcInner));
+                    //Vector2 bcDir = Vector2.Normalize((next + abNormal) - (curr + vertexNormalabcInner));
+                    //
+                    //float distanceBetweenPrevNext = Vector2.Distance(prev, next);
+                    //float distanceExtended = Vector2.Distance(prev + abNormal, next + bcNormal);
 
-                    Vector2 abDir = Vector2.Normalize((prev + abNormal) - (curr + vertexNormalabcInner));
-                    Vector2 bcDir = Vector2.Normalize((next + abNormal) - (curr + vertexNormalabcInner));
+                    VMFDebug.CreateDebugImage("TriangulationStepAttempt" + c2, onDraw: (g) =>
+                    {
+                        float scale = 0.2f;
+                        Point positionAdjustment = new Point(0, 0);
+                        Pen whitePen = new Pen(Color.White, 3);
+                        Pen greyPen = new Pen(Color.Gray, 3);
+                        Pen blackPen = new Pen(Color.Black, 3);
+                        Pen redPen = new Pen(Color.Red, 3);
+                        Pen bluePen = new Pen(Color.Blue, 3);
+                        Pen greenPen = new Pen(Color.Green, 3);
+                        Pen otherPen = new Pen(Color.LightBlue, 3);
 
-                    float distanceBetweenPrevNext = Vector2.Distance(prev, next);
-                    float distanceExtended = Vector2.Distance(prev + abNormal, next + bcNormal);
+                        for (int i = 0; i < Polygon.Count; i++)
+                        {
+                            int iN = (i + 1) % Polygon.Count;
+                            Point p1 = new Point((int)(Polygon[i].X * scale + positionAdjustment.X), (int)(Polygon[i].Y * scale + positionAdjustment.Y));
+                            Point p2 = new Point((int)(Polygon[iN].X * scale + positionAdjustment.X), (int)(Polygon[iN].Y * scale + positionAdjustment.Y));
 
-                    if (distanceExtended < distanceBetweenPrevNext)
+                            g.DrawLine(greyPen, p1, p2);
+                        }
+
+                        for (int i = 0; i < result.Count; i++)
+                        {
+                            for (int j = 0; j < result[i].Count; j++)
+                            {
+                                int iN = (j + 1) % result[i].Count;
+                                Point p1 = new Point((int)(result[i][j].X * scale + positionAdjustment.X), (int)(result[i][j].Y * scale + positionAdjustment.Y));
+                                Point p2 = new Point((int)(result[i][iN].X * scale + positionAdjustment.X), (int)(result[i][iN].Y * scale + positionAdjustment.Y));
+
+                                g.DrawLine(blackPen, p1, p2);
+                            }
+                        }
+
+                        Point prevP = new Point((int)(prev.X * scale + positionAdjustment.X), (int)(prev.Y * scale + positionAdjustment.Y));
+                        Point currP = new Point((int)(curr.X * scale + positionAdjustment.X), (int)(curr.Y * scale + positionAdjustment.Y));
+                        Point nextP = new Point((int)(next.X * scale + positionAdjustment.X), (int)(next.Y * scale + positionAdjustment.Y));
+                        g.DrawLine(otherPen, prevP, currP);
+                        g.DrawLine(otherPen, currP, nextP);
+                        g.DrawLine(otherPen, nextP, prevP);
+
+                        //Point ver = new Point((int)((curr + vertexNormalabcInner).X * scale) + positionAdjustment.Y, (int)((curr + vertexNormalabcInner).Y * scale) + positionAdjustment.Y);
+
+                        //g.DrawLine(redPen, new Point((int)(curr.X * scale) + positionAdjustment.X, (int)(curr.Y * scale) + positionAdjustment.Y), ver);
+                        g.DrawLine(bluePen,
+                            new Point((int)(prev.X * scale) + positionAdjustment.X, (int)(prev.Y * scale) + positionAdjustment.Y),
+                            new Point((int)(prev.X * scale) + (int)(abNormal.X * 30) + positionAdjustment.X, (int)(prev.Y * scale) + (int)(abNormal.Y * 30) + positionAdjustment.Y));
+                        g.DrawLine(bluePen,
+                            new Point((int)(next.X * scale) + positionAdjustment.X, (int)(next.Y * scale) + positionAdjustment.Y),
+                            new Point((int)(next.X * scale) + (int)(bcNormal.X * 30) + positionAdjustment.X, (int)(next.Y * scale) + (int)(bcNormal.Y * 30) + positionAdjustment.Y));
+
+                        g.DrawEllipse(redPen, prev.X * scale + positionAdjustment.X, prev.Y * scale + positionAdjustment.Y, 10, 10);
+                        g.DrawEllipse(bluePen, curr.X * scale + positionAdjustment.X, curr.Y * scale + positionAdjustment.Y, 10, 10);
+                        g.DrawEllipse(greenPen, next.X * scale + positionAdjustment.X, next.Y * scale + positionAdjustment.Y, 10, 10);
+
+                    });
+                    c2++;
+
+                    Vector2 v1 = next - curr;
+                    Vector2 v2 = prev - curr;
+                    float val = (v1.X * v2.Y) - (v1.Y * v2.X);
+
+                    if(val <= 0)
                     {
                         continue;
                     }
 
+                    //if (distanceExtended < distanceBetweenPrevNext)
+                    //{
+                    //    continue;
+                    //}
+
                     bool noGood = false;
                     for (int i = 0; i < remainingValues.Count; i++)
                     {
-                        if (remainingValues[i] == prev || remainingValues[i] == curr || remainingValues[i] == next)
+                        Vector2 point = remainingValues[i];
+
+                        if(sharedValues.Contains(new Vector2(point.X, point.Y - amountToRaise)))
+                        {
+                            point = new Vector2(point.X, point.Y - amountToRaise);
+                        }
+
+                        Vector2 currPoint = point;
+                        Vector2 altCurrPoint = new Vector2(currPoint.X, currPoint.Y + amountToRaise);
+                        if (currPoint == prev || currPoint == curr || currPoint == next ||
+                            altCurrPoint == prev || altCurrPoint == curr || altCurrPoint == next)
                         {
                             continue;
                         }
@@ -133,64 +211,80 @@ namespace VMFConverter
 
                     if(Polygon.Count > 2)
                     {
-                        float scale = 0.1f;
-                        Pen whitePen = new Pen(Color.White, 3);
-                        Pen greyPen = new Pen(Color.Gray, 3);
-                        Pen blackPen = new Pen(Color.Black, 3);
-                        Pen redPen = new Pen(Color.Red, 3);
-                        Pen bluePen = new Pen(Color.Blue, 3);
-                        Pen greenPen = new Pen(Color.Green, 3);
-                        using (Bitmap canvas = new Bitmap(500, 500))
+                        VMFDebug.CreateDebugImage("TriangulationStep" + c, onDraw: (g) =>
                         {
-                            using (Graphics g = Graphics.FromImage(canvas))
+                            float scale = 0.2f;
+                            Point positionAdjustment = new Point(0, 0);
+                            Pen whitePen = new Pen(Color.White, 3);
+                            Pen greyPen = new Pen(Color.Gray, 3);
+                            Pen blackPen = new Pen(Color.Black, 3);
+                            Pen redPen = new Pen(Color.Red, 3);
+                            Pen bluePen = new Pen(Color.Blue, 3);
+                            Pen greenPen = new Pen(Color.Green, 3);
+
+                            for (int i = 0; i < Polygon.Count; i++)
                             {
-                                g.FillRectangle(Brushes.White, new Rectangle(0, 0, 500, 500));
+                                int iN = (i + 1) % Polygon.Count;
+                                Point p1 = new Point((int)(Polygon[i].X * scale + positionAdjustment.X), (int)(Polygon[i].Y * scale + positionAdjustment.Y));
+                                Point p2 = new Point((int)(Polygon[iN].X * scale + positionAdjustment.X), (int)(Polygon[iN].Y * scale + positionAdjustment.Y));
 
-                                for (int i = 0; i < Polygon.Count; i++)
+                                g.DrawLine(greyPen, p1, p2);
+                            }
+
+                            for (int i = 0; i < result.Count; i++)
+                            {
+                                for (int j = 0; j < result[i].Count; j++)
                                 {
-                                    int iN = (i + 1) % Polygon.Count;
-                                    Point p1 = new Point((int)(Polygon[i].X * scale + 100), (int)(Polygon[i].Y * scale + 100));
-                                    Point p2 = new Point((int)(Polygon[iN].X * scale + 100), (int)(Polygon[iN].Y * scale + 100));
+                                    int iN = (j + 1) % result[i].Count;
+                                    Point p1 = new Point((int)(result[i][j].X * scale + positionAdjustment.X), (int)(result[i][j].Y * scale + positionAdjustment.Y));
+                                    Point p2 = new Point((int)(result[i][iN].X * scale + positionAdjustment.X), (int)(result[i][iN].Y * scale + positionAdjustment.Y));
 
-                                    g.DrawLine(greyPen, p1, p2);
-                                }
-
-                                for (int i = 0; i < result.Count; i++)
-                                {
-                                    for (int j = 0; j < result[i].Count; j++)
-                                    {
-                                        int iN = (j + 1) % result[i].Count;
-                                        Point p1 = new Point((int)(result[i][j].X * scale + 100), (int)(result[i][j].Y * scale + 100));
-                                        Point p2 = new Point((int)(result[i][iN].X * scale + 100), (int)(result[i][iN].Y * scale + 100));
-
-                                        g.DrawLine(blackPen, p1, p2);
-                                    }
-                                }
-
-                                Point ver = new Point((int)((curr + vertexNormalabcInner).X * scale) + 100, (int)((curr + vertexNormalabcInner).Y * scale) + 100);
-
-                                g.DrawLine(redPen, new Point((int)(curr.X * scale) + 100, (int)(curr.Y * scale) + 100), ver);
-                                g.DrawLine(bluePen,
-                                    new Point((int)(prev.X * scale) + 100, (int)(prev.Y * scale) + 100),
-                                    new Point((int)(prev.X * scale) + (int)(abNormal.X * 30) + 100, (int)(prev.Y * scale) + (int)(abNormal.Y * 30) + 100));
-                                g.DrawLine(bluePen,
-                                    new Point((int)(next.X * scale) + 100, (int)(next.Y * scale) + 100),
-                                    new Point((int)(next.X * scale) + (int)(bcNormal.X * 30) + 100, (int)(next.Y * scale) + (int)(bcNormal.Y * 30) + 100));
-
-                                g.DrawEllipse(redPen, prev.X * scale + 100, prev.Y * scale + 100, 10, 10);
-                                g.DrawEllipse(bluePen, curr.X * scale + 100, curr.Y * scale + 100, 10, 10);
-                                g.DrawEllipse(greenPen, next.X * scale + 100, next.Y * scale + 100, 10, 10);
-
-                                Font font = new Font(FontFamily.GenericSansSerif, 20, SystemFonts.DefaultFont.Style);
-                                for (int i = 0; i < remainingValues.Count; i++)
-                                {
-                                    Point p1 = new Point((int)(remainingValues[i].X * scale + 100), (int)(remainingValues[i].Y * scale + 100));
-                                    g.DrawString(i.ToString(), font, Brushes.DarkViolet, new PointF(p1.X, p1.Y));
+                                    g.DrawLine(blackPen, p1, p2);
                                 }
                             }
 
-                            canvas.Save(@"C:\Users\funny\source\repos\VMFGenerator\tri" + c + ".png");
-                        }
+                            //Point ver = new Point((int)((curr + vertexNormalabcInner).X * scale) + positionAdjustment.Y, (int)((curr + vertexNormalabcInner).Y * scale) + positionAdjustment.Y);
+
+                            //g.DrawLine(redPen, new Point((int)(curr.X * scale) + positionAdjustment.X, (int)(curr.Y * scale) + positionAdjustment.Y), ver);
+                            g.DrawLine(bluePen,
+                                new Point((int)(prev.X * scale) + positionAdjustment.X, (int)(prev.Y * scale) + positionAdjustment.Y),
+                                new Point((int)(prev.X * scale) + (int)(abNormal.X * 30) + positionAdjustment.X, (int)(prev.Y * scale) + (int)(abNormal.Y * 30) + positionAdjustment.Y));
+                            g.DrawLine(bluePen,
+                                new Point((int)(next.X * scale) + positionAdjustment.X, (int)(next.Y * scale) + positionAdjustment.Y),
+                                new Point((int)(next.X * scale) + (int)(bcNormal.X * 30) + positionAdjustment.X, (int)(next.Y * scale) + (int)(bcNormal.Y * 30) + positionAdjustment.Y));
+
+                            g.DrawEllipse(redPen, prev.X * scale + positionAdjustment.X, prev.Y * scale + positionAdjustment.Y, 10, 10);
+                            g.DrawEllipse(bluePen, curr.X * scale + positionAdjustment.X, curr.Y * scale + positionAdjustment.Y, 10, 10);
+                            g.DrawEllipse(greenPen, next.X * scale + positionAdjustment.X, next.Y * scale + positionAdjustment.Y, 10, 10);
+
+                            Font font = new Font(FontFamily.GenericSansSerif, 20, SystemFonts.DefaultFont.Style);
+                            for (int i = 0; i < remainingValues.Count; i++)
+                            {
+                                Point p1 = new Point((int)(remainingValues[i].X * scale + positionAdjustment.X), (int)(remainingValues[i].Y * scale + positionAdjustment.Y));
+                                bool contains = false;
+                                for (int j = 0; j < result.Count; j++)
+                                {
+                                    contains = result[j].Contains(new Vector2(remainingValues[i].X, remainingValues[i].Y));
+                                    if(contains)
+                                    {
+                                        break;
+                                    }
+                                }
+                                if (remainingValues[i] != prev && remainingValues[i] != curr && remainingValues[i] != next && !contains)
+                                {
+                                    g.DrawString(i.ToString(), font, Brushes.DarkGreen, new PointF(p1.X, p1.Y));
+                                }
+                            }
+                            for (int i = 0; i < remainingValues.Count; i++)
+                            {
+                                Point p1 = new Point((int)(remainingValues[i].X * scale + positionAdjustment.X), (int)(remainingValues[i].Y * scale + positionAdjustment.Y));
+                                if (remainingValues[i] == prev || remainingValues[i] == curr || remainingValues[i] == next)
+                                {
+                                    g.DrawString(i.ToString(), font, Brushes.DarkViolet, new PointF(p1.X + 40, p1.Y));
+                                }
+                            }
+
+                        });
                     }
 
                     c++;
@@ -207,6 +301,38 @@ namespace VMFConverter
                     }
                 }
             }
+
+            for (int r = 0; r < result.Count; r++)
+            {
+                VMFDebug.CreateDebugImage("FinalTriangulation" + r, onDraw: (g) =>
+                {
+                    float scale = 0.2f;
+                    Pen blackPen = new Pen(Color.Black, 3);
+                    Pen greyPen = new Pen(Color.Gray, 3);
+
+                    for (int i = 0; i < result.Count; i++)
+                    {
+                        for (int j = 0; j < result[i].Count; j++)
+                        {
+                            int iN = (j + 1) % result[i].Count;
+                            Point p1 = new Point((int)(result[i][j].X * scale), (int)(result[i][j].Y * scale));
+                            Point p2 = new Point((int)(result[i][iN].X * scale), (int)(result[i][iN].Y * scale));
+
+                            g.DrawLine(greyPen, p1, p2);
+                        }
+                    }
+
+                    for (int i = 0; i < result[r].Count; i++)
+                    {
+                        int iN = (i + 1) % result[r].Count;
+                        Point p1 = new Point((int)(result[r][i].X * scale), (int)(result[r][i].Y * scale));
+                        Point p2 = new Point((int)(result[r][iN].X * scale), (int)(result[r][iN].Y * scale));
+
+                        g.DrawLine(blackPen, p1, p2);
+                    }
+                });
+            }
+
 
             return result;
         }

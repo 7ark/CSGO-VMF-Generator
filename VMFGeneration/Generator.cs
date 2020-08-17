@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using VMFGenerator;
 
 namespace VMFConverter
 {
@@ -149,8 +150,8 @@ namespace VMFConverter
             //generationMethods.Add(new MiscGenerationMethod());
             generationMethods.Add(new ImageGenerationMethod()
             {
-                Detail = 10,
-                InputFilePath = @"C:\Users\funny\source\repos\VMFGenerator\Input\InputTest.png"
+                Detail = 20,
+                InputFilePath = @"C:\Users\funny\source\repos\VMFGenerator\Input\InputTest2.png"
             });
             generationMethods.Add(new HollowCubeGenerationMethod()
             {
@@ -176,29 +177,19 @@ namespace VMFConverter
 
                     if (!IsShapeConvex(shapes[i] as Polygon))
                     {
-                        Pen greyPen = new Pen(Color.Gray, 3);
-                        Pen blackPen = new Pen(Color.Black, 3);
-                        Pen redPen = new Pen(Color.Red, 3);
-                        Pen bluePen = new Pen(Color.Blue, 3);
-                        Pen greenPen = new Pen(Color.Green, 3);
-                        using (Bitmap canvas = new Bitmap(500, 500))
+                        VMFDebug.CreateDebugImage("PreTriangulation" + (i), onDraw: (g) =>
                         {
-                            using (Graphics g = Graphics.FromImage(canvas))
+                            Pen greyPen = new Pen(Color.Gray, 3);
+                            Pen redPen = new Pen(Color.Red, 3);
+                            for (int j = 0; j < shapes.Count; j++)
                             {
-                                g.FillRectangle(Brushes.White, new Rectangle(0, 0, 500, 500));
-
-                                for (int j = 0; j < shapes.Count; j++)
+                                if (shapes[j] is Polygon)
                                 {
-                                    if (shapes[j] is Polygon)
-                                    {
-                                        DrawShape(g, shapes[j] as Polygon, greyPen);
-                                    }
+                                    VMFDebug.AddShapeToGraphics(g, shapes[j] as Polygon, greyPen);
                                 }
-                                DrawShape(g, shapes[i] as Polygon, redPen);
                             }
-
-                            canvas.Save(@"C:\Users\funny\source\repos\VMFGenerator\PreTri" + (i) + ".png");
-                        }
+                            VMFDebug.AddShapeToGraphics(g, shapes[i] as Polygon, redPen);
+                        });
 
 
                         Console.WriteLine("Found a concave shape. Attempting triangulation");
@@ -210,24 +201,19 @@ namespace VMFConverter
                             replacements.Add(temp[j] as Polygon);
                         }
 
-                        using (Bitmap canvas = new Bitmap(500, 500))
+                        VMFDebug.CreateDebugImage("AfterSplit" + (i), onDraw: (g) =>
                         {
-                            using (Graphics g = Graphics.FromImage(canvas))
+                            Pen greyPen = new Pen(Color.Gray, 3);
+                            Pen redPen = new Pen(Color.Red, 3);
+                            for (int j = 0; j < replacements.Count; j++)
                             {
-                                g.FillRectangle(Brushes.White, new Rectangle(0, 0, 500, 500));
-
-                                for (int j = 0; j < replacements.Count; j++)
+                                if (replacements[j] is Polygon)
                                 {
-                                    if (replacements[j] is Polygon)
-                                    {
-                                        DrawShape(g, replacements[j] as Polygon, greyPen);
-                                    }
+                                    VMFDebug.AddShapeToGraphics(g, replacements[j] as Polygon, greyPen);
                                 }
-                                DrawShape(g, shapes[i] as Polygon, redPen);
                             }
-
-                            canvas.Save(@"C:\Users\funny\source\repos\VMFGenerator\AfterSplit" + (i) + ".png");
-                        }
+                            VMFDebug.AddShapeToGraphics(g, shapes[i] as Polygon, redPen);
+                        });
 
                         Console.WriteLine("Single shape converted into " + replacements.Count + " new shapes");
 
@@ -240,7 +226,7 @@ namespace VMFConverter
                                 replacements[j] = RemoveRedundantPoints(replacements[j] as Polygon);
                                 Console.WriteLine("An invalid shape was found in the replacement batch. Attempting to fix...");
 
-                                if (!IsShapeConvex(replacements[j] as Polygon))
+                                if (((PolygonShapeData)replacements[j].Data).PolygonPoints.Count < 3 || !IsShapeConvex(replacements[j] as Polygon))
                                 {
                                     Console.WriteLine("Could not fix invalid shape. Deleting.");
                                     replacements.RemoveAt(j);
@@ -330,19 +316,6 @@ namespace VMFConverter
             return final;
         }
 
-        private static void DrawShape(Graphics g, Polygon polgon, Pen pen)
-        {
-            float scale = 0.1f;
-            List<Vector2> points = ((PolygonShapeData)polgon.Data).PolygonPoints;
-            for (int i = 0; i < points.Count; i++)
-            {
-                int iN = (i + 1) % points.Count;
-                Point p1 = new Point((int)(points[i].X * scale + 100), (int)(points[i].Y * scale + 100));
-                Point p2 = new Point((int)(points[iN].X * scale + 100), (int)(points[iN].Y * scale + 100));
-                
-                g.DrawLine(pen, p1, p2);
-            }
-        }
 
         public static void CombineShapes(List<Polygon> shapes, out List<Polygon> resultingShapes, int depth = 0)
         {
@@ -356,7 +329,7 @@ namespace VMFConverter
             //{
             //    for (int j = 0; j < ((PolygonShapeData)options[i].Data).PolygonPoints.Count; j++)
             //    {
-            //        ((PolygonShapeData)options[i].Data).PolygonPoints[j] /= 128;
+            //        ((PolygonShapeData)options[i].Data).PolygonPoints[j] /= 64;
             //    }
             //}
 
@@ -395,49 +368,38 @@ namespace VMFConverter
                     }
                 }
 
-                #region DrawingDebug
-#if true
-
-                Pen greyPen = new Pen(Color.Gray, 3);
-                Pen blackPen = new Pen(Color.Black, 3);
-                Pen redPen = new Pen(Color.Red, 3);
-                Pen bluePen = new Pen(Color.Blue, 3);
-                Pen greenPen = new Pen(Color.Green, 3);
-                using (Bitmap canvas = new Bitmap(500, 500))
+                VMFDebug.CreateDebugImage("CombiningStep" + (save++), onDraw: (g) =>
                 {
-                    using (Graphics g = Graphics.FromImage(canvas))
+                    Pen greyPen = new Pen(Color.Gray, 3);
+                    Pen blackPen = new Pen(Color.Black, 3);
+                    Pen redPen = new Pen(Color.Red, 3);
+                    Pen bluePen = new Pen(Color.Blue, 3);
+                    Pen greenPen = new Pen(Color.Green, 3);
+
+                    for (int i = 0; i < options.Count; i++)
                     {
-                        g.FillRectangle(Brushes.White, new Rectangle(0, 0, 500, 500));
-
-                        for (int i = 0; i < options.Count; i++)
-                        {
-                            DrawShape(g, options[i], greyPen);
-                        }
-
-                        for (int i = 0; i < applicants.Count; i++)
-                        {
-                            DrawShape(g, applicants[i], blackPen);
-                        }
-
-                        if (found != null)
-                        {
-                            DrawShape(g, found, bluePen);
-                        }
-
-                        if (prev != null)
-                        {
-                            DrawShape(g, prev, greenPen);
-                        }
-                        else
-                        {
-                            DrawShape(g, currentPolygonToEval, redPen);
-                        }
+                        VMFDebug.AddShapeToGraphics(g, options[i], greyPen);
                     }
 
-                    canvas.Save(@"C:\Users\funny\source\repos\VMFGenerator\Test" + (save++) + ".png");
-                }
-#endif
-                #endregion
+                    for (int i = 0; i < applicants.Count; i++)
+                    {
+                        VMFDebug.AddShapeToGraphics(g, applicants[i], blackPen);
+                    }
+
+                    if (found != null)
+                    {
+                        VMFDebug.AddShapeToGraphics(g, found, bluePen);
+                    }
+
+                    if (prev != null)
+                    {
+                        VMFDebug.AddShapeToGraphics(g, prev, greenPen);
+                    }
+                    else
+                    {
+                        VMFDebug.AddShapeToGraphics(g, currentPolygonToEval, redPen);
+                    }
+                });
 
                 if (!anyCombination)
                 {

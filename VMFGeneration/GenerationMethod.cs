@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
+using VMFGenerator;
 
 namespace VMFConverter
 {
@@ -26,134 +28,117 @@ namespace VMFConverter
                 }
             }
 
+            List<Vector2> linedUpPoints = new List<Vector2>();
+
+            bool[,] boolGrid = new bool[grid.GetLength(0), grid.GetLength(1)];
             for (int x = 0; x < grid.GetLength(0); x++)
             {
                 for (int y = 0; y < grid.GetLength(1); y++)
                 {
-                    bool edge = false;
-                    if(grid[x, y] == 1)
+                    boolGrid[x, y] = grid[x, y] == 1;
+                }
+            }
+
+            linedUpPoints = new List<Vector2>(
+                BitmapHelper.CreateFromBitmap(new ArrayBitmap(boolGrid))
+                );
+
+            if(true)
+            {
+                List<Vector2> sharedPoints = new List<Vector2>();
+                Dictionary<int, Vector2> toMove = new Dictionary<int, Vector2>();
+
+                for (int i = 0; i < linedUpPoints.Count; i++)
+                {
+                    for (int j = 0; j < linedUpPoints.Count; j++)
                     {
-                        for (int localX = -1; localX < 2; localX++)
+                        if (i == j)
                         {
-                            for (int localY = -1; localY < 2; localY++)
-                            {
-                                edge = GetNeighbor(grid, x, y, localX, localY) == 0;
-                                if(edge)
-                                {
-                                    break;
-                                }
-                            }
-                            if (edge)
-                            {
-                                break;
-                            }
+                            continue;
                         }
-                    }
-                    if(edge)
-                    {
-                        edgePositions.Add(new Vector2(x, grid.GetLength(1) - y));
-                    }
-                }
-            }
 
-            List<Vector2> linedUpPoints = new List<Vector2>();
-
-            Vector2 current = edgePositions[0];
-            linedUpPoints.Add(current);
-            edgePositions.RemoveAt(0);
-
-            while (edgePositions.Count > 0)
-            {
-                Vector2 closest1 = new Vector2();
-                float closestDist = float.MaxValue;
-                for (int i = 0; i < edgePositions.Count; i++)
-                {
-                    float dist = Vector2.Distance(current, edgePositions[i]);
-                    if(dist < closestDist)
-                    {
-                        closest1 = edgePositions[i];
-                        closestDist = dist;
-                    }
-                }
-
-                current = closest1;
-                linedUpPoints.Add(current);
-                edgePositions.Remove(current);
-            }
-
-            List<Vector2> results = new List<Vector2>();
-            //Detail degretation
-            for (int i = 0; i < linedUpPoints.Count; i += Detail)
-            {
-                results.Add(linedUpPoints[i]);// - new Vector2(grid.GetLength(0)/2, grid.GetLength(1)/2));
-            }
-
-            float scale = 0.5f;
-            Pen greyPen = new Pen(Color.Gray, 3);
-            Pen blackPen = new Pen(Color.Black, 3);
-            Pen redPen = new Pen(Color.Red, 3);
-            Pen bluePen = new Pen(Color.Blue, 3);
-            Pen greenPen = new Pen(Color.Green, 3);
-            using (Bitmap canvas = new Bitmap(500, 500))
-            {
-                using (Graphics g = Graphics.FromImage(canvas))
-                {
-                    g.FillRectangle(Brushes.Black, new Rectangle(0, 0, 500, 500));
-
-                    //for (int i = 0; i < results.Count; i++)
-                    //{
-                    //    Point A = new Point((int)results[i].X, (int)results[i].Y);
-                    //    Point B = new Point((int)results[(i + 1) % results.Count].X, (int)results[(i + 1) % results.Count].Y);
-                    //    g.DrawLine(new Pen(Color.FromArgb((i % 205) + 50, (i % 205) + 50, (i % 205) + 50)), A, B);
-                    //}
-
-                    for (int i = 0; i < linedUpPoints.Count; i++)
-                    {
-                        g.DrawRectangle(new Pen(Color.FromArgb(i % 255, i % 255, i % 255)), new Rectangle((int)(linedUpPoints[i].X * scale), (int)(linedUpPoints[i].Y * scale), 1, 1));
-                    }
-
-                    for (int x = 0; x < grid.GetLength(0); x++)
-                    {
-                        for (int y = 0; y < grid.GetLength(1); y++)
+                        float dist = Vector2.Distance(linedUpPoints[i], linedUpPoints[j]);
+                        Console.WriteLine(dist);
+                        if (dist <= 2 && !sharedPoints.Contains(linedUpPoints[i]) && !sharedPoints.Contains(linedUpPoints[j]))
                         {
-                            if(grid[x, y] == 1)
-                            g.DrawRectangle(new Pen(Color.White), new Rectangle((int)(x * scale), (int)(y * scale), 1, 1));
+                            sharedPoints.Add(linedUpPoints[i]);
+                            sharedPoints.Add(linedUpPoints[j]);
+                            toMove.Add(i, linedUpPoints[j]);
                         }
                     }
                 }
 
-                canvas.Save(@"C:\Users\funny\source\repos\VMFGenerator\ImageProcess" + ".png");
+                foreach (int key in toMove.Keys)
+                {
+                    linedUpPoints[key] = toMove[key];
+                }
             }
+
+            float scale = 1f;
+            VMFDebug.CreateDebugImage("ImageProcess", onDraw: (g) =>
+            {
+                //for (int i = 0; i < results.Count; i++)
+                //{
+                //    Point A = new Point((int)results[i].X, (int)results[i].Y);
+                //    Point B = new Point((int)results[(i + 1) % results.Count].X, (int)results[(i + 1) % results.Count].Y);
+                //    g.DrawLine(new Pen(Color.FromArgb((i % 205) + 50, (i % 205) + 50, (i % 205) + 50)), A, B);
+                //}
+
+                for (int i = 0; i < linedUpPoints.Count; i++)
+                {
+                    int iN = (i + 1) % (linedUpPoints.Count);
+                    g.DrawRectangle(new Pen(Color.Black), new Rectangle((int)(linedUpPoints[i].X * scale), (int)(linedUpPoints[i].Y * scale), 1, 1));
+                    g.DrawLine(new Pen(Color.Black, 3), 
+                        new Point((int)(linedUpPoints[i].X * scale), (int)(linedUpPoints[i].Y * scale)), 
+                        new Point((int)(linedUpPoints[iN].X * scale), (int)(linedUpPoints[iN].Y * scale)));
+                    g.DrawString(i.ToString(), SystemFonts.DefaultFont, Brushes.Red, new Point((int)(linedUpPoints[i].X * scale), (int)(linedUpPoints[i].Y * scale)));
+                }
+
+                for (int i = 0; i < linedUpPoints.Count; i++)
+                {
+                    g.DrawRectangle(new Pen(Color.FromArgb(i % 255, i % 255, i % 255)), new Rectangle((int)(linedUpPoints[i].X * scale), (int)(linedUpPoints[i].Y * scale), 1, 1));
+                }
+                
+                //for (int x = 0; x < grid.GetLength(0); x++)
+                //{
+                //    for (int y = 0; y < grid.GetLength(1); y++)
+                //    {
+                //        if (grid[x, y] == 1)
+                //            g.DrawRectangle(new Pen(Color.Black), new Rectangle((int)(x * scale), (int)(y * scale), 1, 1));
+                //    }
+                //}
+            });
+
+            List<Vector2> result = new List<Vector2>();
+            for (int i = 0; i < linedUpPoints.Count; i++)
+            {
+                if(i == 0 || linedUpPoints[i] != linedUpPoints[i - 1])
+                {
+                    result.Add(linedUpPoints[i]);
+                }
+            }
+
 
             Polygon poly = new Polygon()
             {
-                Position = new Vector3(0, 0, 0),
+                Position = new Vector3(-map.Width/2 * 8, -map.Height/2 * 8, 0),
                 Data = new PolygonShapeData()
                 {
                     Depth = 64,
-                    Scalar = 8,
-                    PolygonPoints = results
+                    Scalar = 4,
+                    PolygonPoints = result
                 }
             };
-
-            for (int i = 0; i < 20; i++)
-            {
-                poly = Generator.RemoveRedundantPoints(poly);
-            }
-
+            
             shapes.Add(poly);
+            
+            shapes.AddRange(WallGenerator.CreateWalls(poly, new WallData()
+            {
+                Height = 256 + 128,
+                Thickness = 16
+            }));
 
             return shapes;
-        }
-
-        private int GetNeighbor(int[,] grid, int pointX, int pointY, int x, int y)
-        {
-            if(pointX == 0 || pointY == 0 || pointX == grid.GetLength(0) - 1 || pointY == grid.GetLength(1) - 1)
-            {
-                return -1;
-            }
-
-            return grid[pointX + x, pointY + y];
         }
     }
 
