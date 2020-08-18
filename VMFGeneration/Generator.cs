@@ -196,7 +196,7 @@ namespace VMFConverter
             generationMethods.Add(new ImageGenerationMethod()
             {
                 Detail = 20,
-                InputFilePath = @"C:\Users\funny\source\repos\VMFGenerator\Input\InputTest7.png"
+                InputFilePath = @"C:\Users\funny\source\repos\VMFGenerator\Input\InputTest.png"
             });
             generationMethods.Add(new HollowCubeGenerationMethod()
             {

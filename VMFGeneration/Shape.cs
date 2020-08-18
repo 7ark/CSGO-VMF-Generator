@@ -944,10 +944,10 @@ namespace VMFConverter
                 finalPolygons.Add(
                     new Polygon()
                     {
-                        Position = polygon.Position + new Vector3(0, 0, polygon.Position.Z * 0.5f),
+                        Position = polygon.Position + new Vector3(0, 0, wallData.Height * 0.5f),
                         Data = new PolygonShapeData()
                         {
-                            Depth = wallData.Height,
+                            Depth = wallData.Height + ((PolygonShapeData)polygon.Data).Depth,
                             Scalar = 1,
                             PolygonPoints = allPoints[i]
                         }

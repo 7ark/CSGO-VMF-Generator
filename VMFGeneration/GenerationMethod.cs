@@ -41,10 +41,10 @@ namespace VMFConverter
 
             List<Vector2> edgePositions = new List<Vector2>();
             Bitmap map = new Bitmap(InputFilePath);
-            map.RotateFlip(RotateFlipType.RotateNoneFlipX);
+            map.RotateFlip(RotateFlipType.Rotate180FlipX);
+            map = new Bitmap(map, new Size(map.Width * 2, map.Height * 2));
             int[,] grid = new int[map.Width, map.Height];
             int[,] testingGrid = new int[map.Width, map.Height];
-
 
             for (int x = 0; x < grid.GetLength(0); x++)
             {
@@ -537,11 +537,11 @@ namespace VMFConverter
             Polygon poly = new Polygon()
             {
                 Visgroup = Visgroups.TAR_LAYOUT,
-                Position = new Vector3(-map.Width/2 * 8, -map.Height/2 * 8, 0),
+                Position = new Vector3(-map.Width, -map.Height, 0),
                 Data = new PolygonShapeData()
                 {
                     Depth = 64,
-                    Scalar = 4,
+                    Scalar = 2,
                     PolygonPoints = linedUpPoints
                 }
             };
@@ -550,7 +550,7 @@ namespace VMFConverter
             
             shapes.AddRange(WallGenerator.CreateWalls(poly, new WallData()
             {
-                Height = 256 + 128,
+                Height = 256,
                 Thickness = 16
             }));
 
