@@ -88,18 +88,6 @@ namespace VMFConverter
                     Vector2 curr = Polygon[indexB];
                     Vector2 next = Polygon[indexC];
 
-                    Vector2 up = new Vector2(0, 1);
-
-                    Vector2 abNormal = Vector2.Normalize(Shape.GetNormal2D(prev, curr));
-                    Vector2 bcNormal = Vector2.Normalize(Shape.GetNormal2D(curr, next));
-                    //Vector2 vertexNormalabcInner = -Vector2.Normalize((abNormal + bcNormal)) * 100;
-                    //
-                    //Vector2 abDir = Vector2.Normalize((prev + abNormal) - (curr + vertexNormalabcInner));
-                    //Vector2 bcDir = Vector2.Normalize((next + abNormal) - (curr + vertexNormalabcInner));
-                    //
-                    //float distanceBetweenPrevNext = Vector2.Distance(prev, next);
-                    //float distanceExtended = Vector2.Distance(prev + abNormal, next + bcNormal);
-
                     VMFDebug.CreateDebugImage("TriangulationStepAttempt" + c2, onDraw: (g) =>
                     {
                         float scale = 0.2f;
@@ -140,16 +128,6 @@ namespace VMFConverter
                         g.DrawLine(otherPen, currP, nextP);
                         g.DrawLine(otherPen, nextP, prevP);
 
-                        //Point ver = new Point((int)((curr + vertexNormalabcInner).X * scale) + positionAdjustment.Y, (int)((curr + vertexNormalabcInner).Y * scale) + positionAdjustment.Y);
-
-                        //g.DrawLine(redPen, new Point((int)(curr.X * scale) + positionAdjustment.X, (int)(curr.Y * scale) + positionAdjustment.Y), ver);
-                        g.DrawLine(bluePen,
-                            new Point((int)(prev.X * scale) + positionAdjustment.X, (int)(prev.Y * scale) + positionAdjustment.Y),
-                            new Point((int)(prev.X * scale) + (int)(abNormal.X * 30) + positionAdjustment.X, (int)(prev.Y * scale) + (int)(abNormal.Y * 30) + positionAdjustment.Y));
-                        g.DrawLine(bluePen,
-                            new Point((int)(next.X * scale) + positionAdjustment.X, (int)(next.Y * scale) + positionAdjustment.Y),
-                            new Point((int)(next.X * scale) + (int)(bcNormal.X * 30) + positionAdjustment.X, (int)(next.Y * scale) + (int)(bcNormal.Y * 30) + positionAdjustment.Y));
-
                         g.DrawEllipse(redPen, prev.X * scale + positionAdjustment.X, prev.Y * scale + positionAdjustment.Y, 10, 10);
                         g.DrawEllipse(bluePen, curr.X * scale + positionAdjustment.X, curr.Y * scale + positionAdjustment.Y, 10, 10);
                         g.DrawEllipse(greenPen, next.X * scale + positionAdjustment.X, next.Y * scale + positionAdjustment.Y, 10, 10);
@@ -176,13 +154,14 @@ namespace VMFConverter
                     {
                         Vector2 point = remainingValues[i];
 
-                        if(sharedValues.Contains(new Vector2(point.X, point.Y - amountToRaise)))
+                        Vector2 pointButShort = new Vector2(point.X, MathF.Round(point.Y - amountToRaise, 1));
+                        if (sharedValues.Contains(pointButShort))
                         {
-                            point = new Vector2(point.X, point.Y - amountToRaise);
+                            point = pointButShort;
                         }
 
                         Vector2 currPoint = point;
-                        Vector2 altCurrPoint = new Vector2(currPoint.X, currPoint.Y + amountToRaise);
+                        Vector2 altCurrPoint = new Vector2(currPoint.X, MathF.Round(currPoint.Y + amountToRaise, 1));
                         if (currPoint == prev || currPoint == curr || currPoint == next ||
                             altCurrPoint == prev || altCurrPoint == curr || altCurrPoint == next)
                         {
@@ -242,16 +221,6 @@ namespace VMFConverter
                                     g.DrawLine(blackPen, p1, p2);
                                 }
                             }
-
-                            //Point ver = new Point((int)((curr + vertexNormalabcInner).X * scale) + positionAdjustment.Y, (int)((curr + vertexNormalabcInner).Y * scale) + positionAdjustment.Y);
-
-                            //g.DrawLine(redPen, new Point((int)(curr.X * scale) + positionAdjustment.X, (int)(curr.Y * scale) + positionAdjustment.Y), ver);
-                            g.DrawLine(bluePen,
-                                new Point((int)(prev.X * scale) + positionAdjustment.X, (int)(prev.Y * scale) + positionAdjustment.Y),
-                                new Point((int)(prev.X * scale) + (int)(abNormal.X * 30) + positionAdjustment.X, (int)(prev.Y * scale) + (int)(abNormal.Y * 30) + positionAdjustment.Y));
-                            g.DrawLine(bluePen,
-                                new Point((int)(next.X * scale) + positionAdjustment.X, (int)(next.Y * scale) + positionAdjustment.Y),
-                                new Point((int)(next.X * scale) + (int)(bcNormal.X * 30) + positionAdjustment.X, (int)(next.Y * scale) + (int)(bcNormal.Y * 30) + positionAdjustment.Y));
 
                             g.DrawEllipse(redPen, prev.X * scale + positionAdjustment.X, prev.Y * scale + positionAdjustment.Y, 10, 10);
                             g.DrawEllipse(bluePen, curr.X * scale + positionAdjustment.X, curr.Y * scale + positionAdjustment.Y, 10, 10);

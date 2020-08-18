@@ -18,8 +18,7 @@ namespace VMFConverter
 	""mapversion"" ""1""
 	""formatversion"" ""100""
 	""prefab"" ""0""
-}
-            ";
+}";
 
         private const string viewSettingsConstant =
             @"viewsettings
@@ -58,6 +57,21 @@ namespace VMFConverter
                 angles: new Vector3(-40, -60, 0),
                 pitch: -60));
 
+            List<string> visgroups = new List<string>()
+            {
+                Visgroups.TAR_LAYOUT,
+                Visgroups.TAR_MASK,
+                Visgroups.TAR_COVER
+            };
+
+            Random rand = new Random();
+
+            for (int i = 0; i < visgroups.Count; i++)
+            {
+                Visgroups.VisgroupNameToID.Add(visgroups[i], i);
+                Visgroups.VisgroupNameToColor.Add(visgroups[i], Color.FromArgb(rand.Next(0, 255), rand.Next(0, 255), rand.Next(0, 255)));
+            }
+
             List<Shape> brushes = new List<Shape>();
             Dictionary<int, List<Shape>> funcDetails = new Dictionary<int, List<Shape>>();
 
@@ -81,6 +95,16 @@ namespace VMFConverter
             uniqueVMF += versionInfoConstant + Environment.NewLine;
             uniqueVMF += "visgroups" + Environment.NewLine;
             uniqueVMF += "{" + Environment.NewLine;
+            for (int i = 0; i < visgroups.Count; i++)
+            {
+                uniqueVMF += "\tvisgroup" + Environment.NewLine;
+                uniqueVMF += "\t{" + Environment.NewLine;
+                uniqueVMF += "\t\t\"name\" \"" + visgroups[i] + "\"" + Environment.NewLine;
+                uniqueVMF += "\t\t\"visgroupid\" \"" + Visgroups.VisgroupNameToID[visgroups[i]] + "\"" + Environment.NewLine;
+                Color col = Visgroups.VisgroupNameToColor[visgroups[i]];
+                uniqueVMF += "\t\t\"color\" \"" + col.R + " " + col.G + " " + col.B + "\"" + Environment.NewLine;
+                uniqueVMF += "\t}" + Environment.NewLine;
+            }
             uniqueVMF += "}" + Environment.NewLine;
             uniqueVMF += viewSettingsConstant + Environment.NewLine;
             uniqueVMF += "world" + Environment.NewLine;
@@ -140,6 +164,27 @@ namespace VMFConverter
                     "\t\t\t\"smoothing_groups\" \"0\"" + Environment.NewLine;
                     uniqueVMF += "\t\t}" + Environment.NewLine;
                 }
+                uniqueVMF += "\t\teditor" + Environment.NewLine;
+                uniqueVMF += "\t\t{" + Environment.NewLine;
+
+                string visgroupName = shapes[i].Visgroup;
+                int visgroupId = -1;
+                Color col = Color.White;
+                
+                if(visgroupName != string.Empty)
+                {
+                    visgroupId = Visgroups.VisgroupNameToID[visgroupName];
+                    col = Visgroups.VisgroupNameToColor[visgroupName];
+                }
+
+                uniqueVMF += "\t\t\t\"color\" \"" + col.R + " " + col.G + " " + col.B + "\"" + Environment.NewLine;
+                if(visgroupId != -1)
+                {
+                    uniqueVMF += "\t\t\t\"visgroupid\" \"" + visgroupId + "\"" + Environment.NewLine;
+                }
+                uniqueVMF += "\t\t\t\"visgroupshown\" \"1\"" + Environment.NewLine;
+                uniqueVMF += "\t\t\t\"visgroupautoshown\" \"1\"" + Environment.NewLine;
+                uniqueVMF += "\t\t}" + Environment.NewLine;
                 uniqueVMF += "\t}" + Environment.NewLine;
             }
         }
@@ -151,7 +196,7 @@ namespace VMFConverter
             generationMethods.Add(new ImageGenerationMethod()
             {
                 Detail = 20,
-                InputFilePath = @"C:\Users\funny\source\repos\VMFGenerator\Input\InputTest2.png"
+                InputFilePath = @"C:\Users\funny\source\repos\VMFGenerator\Input\InputTest7.png"
             });
             generationMethods.Add(new HollowCubeGenerationMethod()
             {
@@ -201,19 +246,19 @@ namespace VMFConverter
                             replacements.Add(temp[j] as Polygon);
                         }
 
-                        VMFDebug.CreateDebugImage("AfterSplit" + (i), onDraw: (g) =>
-                        {
-                            Pen greyPen = new Pen(Color.Gray, 3);
-                            Pen redPen = new Pen(Color.Red, 3);
-                            for (int j = 0; j < replacements.Count; j++)
-                            {
-                                if (replacements[j] is Polygon)
-                                {
-                                    VMFDebug.AddShapeToGraphics(g, replacements[j] as Polygon, greyPen);
-                                }
-                            }
-                            VMFDebug.AddShapeToGraphics(g, shapes[i] as Polygon, redPen);
-                        });
+                        //VMFDebug.CreateDebugImage("AfterSplit" + (i), onDraw: (g) =>
+                        //{
+                        //    Pen greyPen = new Pen(Color.Gray, 3);
+                        //    Pen redPen = new Pen(Color.Red, 3);
+                        //    for (int j = 0; j < replacements.Count; j++)
+                        //    {
+                        //        if (replacements[j] is Polygon)
+                        //        {
+                        //            VMFDebug.AddShapeToGraphics(g, replacements[j] as Polygon, greyPen);
+                        //        }
+                        //    }
+                        //    VMFDebug.AddShapeToGraphics(g, shapes[i] as Polygon, redPen);
+                        //});
 
                         Console.WriteLine("Single shape converted into " + replacements.Count + " new shapes");
 

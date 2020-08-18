@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using VMFGenerator;
 
 namespace VMFConverter
 {
@@ -38,7 +39,7 @@ namespace VMFConverter
     public class Polygon : Shape
     {
         public Polygon() { }
-        public Polygon(Polygon self)
+        public Polygon(Polygon self) : base(self)
         {
             ID = self.ID;
             Position = self.Position;
@@ -194,7 +195,7 @@ namespace VMFConverter
 
             finalData.PolygonPoints = newShapeList;
 
-            Polygon topVertex = new Polygon()
+            Polygon topVertex = new Polygon(other)
             {
                 ID = other.ID,
                 Position = other.Position,
@@ -473,8 +474,10 @@ namespace VMFConverter
             Sides = self.Sides;
             Data = new ShapeData(self.Data);
             Texture = self.Texture;
+            Visgroup = self.Visgroup;
         }
 
+        public string Visgroup = string.Empty;
         public int FuncDetailID = -1;
         public int ID;
         public Vector3 Position;
@@ -900,6 +903,40 @@ namespace VMFConverter
             //        allPoints[i][j] /= 128;
             //    }
             //}
+
+            for (int i = allPoints.Count - 1; i >= 0; i--)
+            {
+                bool hasNan = false;
+                for (int j = 0; j < allPoints[i].Count; j++)
+                {
+                    if(allPoints[i][j] != allPoints[i][j])
+                    {
+                        hasNan = true;
+                        break;
+                    }
+                }
+
+                if(hasNan)
+                {
+                    allPoints.RemoveAt(i);
+                }
+            }
+
+            VMFDebug.CreateDebugImage("WallOutput", onDraw: (g) =>
+            {
+                float scale = 0.1f;
+                for (int i = 0; i < allPoints.Count; i++)
+                {
+                    for (int j = 0; j < allPoints[i].Count; j++)
+                    {
+                        int iN = (j + 1) % allPoints[i].Count;
+                        Point p1 = new Point((int)(allPoints[i][j].X * scale + 100), (int)(allPoints[i][j].Y * scale + 100));
+                        Point p2 = new Point((int)(allPoints[i][iN].X * scale + 100), (int)(allPoints[i][iN].Y * scale + 100));
+
+                        g.DrawLine(new Pen(Color.Black, 3), p1, p2);
+                    }
+                }
+            });
 
             List<Polygon> finalPolygons = new List<Polygon>();
             for (int i = 0; i < allPoints.Count; i++)
