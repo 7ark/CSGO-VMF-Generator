@@ -62,3 +62,7 @@ For anything else, it should all be fairly self explanatory. You'll need to look
 ## Pull Requests
 I am open to any pull requests to improve the code base, adding new features, even if its just adding new Entity Templates, Textures, etc. 
 This is not a project I plan to support heavily, it is something I update in my spare time to expand and improve.
+
+## Personal Support
+If you’re interested in supporting me personally, you can follow me on [Twitter](https://twitter.com/The7ark) or [Instagram](https://www.instagram.com/the7ark/). 
+If you want to support me financially, I have a [Patreon](https://www.patreon.com/7ark) and a [Ko-fi](https://ko-fi.com/sevenark).
