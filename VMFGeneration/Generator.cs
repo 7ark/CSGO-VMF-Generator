@@ -34,6 +34,7 @@ namespace VMFConverter
             @"    ""id"" ""1""
     ""mapversion"" ""797""
     ""classname"" ""worldspawn""
+    ""comment"" ""Created with 7ark's VMF Generator, found at https://github.com/7ark/CSGO-VMF-Generator""
     ""detailmaterial"" ""detail/detailsprites""
     ""detailvbsp"" ""detail.vbsp""
     ""maxpropscreenwidth"" ""-1""
