@@ -13,7 +13,7 @@ namespace VMFGenerator
         public static void GetInput(out List<GenerationMethod> generationMethods, out List<string> entities)
         {
             //If enabled, will draw images to a created debug folder
-            VMFDebug.DebugMode = true;
+            VMFDebug.DebugMode = false;
 
             //Generation Methods
             generationMethods = new List<GenerationMethod>();
