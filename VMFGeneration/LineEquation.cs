@@ -30,51 +30,61 @@ namespace VMFConverter
         public float A { get; private set; }
         public float B { get; private set; }
         public float C { get; private set; }
-        struct Line
+        private struct Line
         {
             public Vector2 p1, p2;
         };
 
-        bool onLine(Line l1, Vector2 p)
+        private bool OnLine(Line line1, Vector2 p)
         {   //check whether p is on the line or not
-            if (p.X <= MathF.Max(l1.p1.X, l1.p2.X) && p.X <= MathF.Min(l1.p1.X, l1.p2.X) &&
-               (p.Y <= MathF.Max(l1.p1.Y, l1.p2.Y) && p.Y <= MathF.Min(l1.p1.Y, l1.p2.Y)))
+            if (p.X <= MathF.Max(line1.p1.X, line1.p2.X) && p.X <= MathF.Min(line1.p1.X, line1.p2.X) &&
+               (p.Y <= MathF.Max(line1.p1.Y, line1.p2.Y) && p.Y <= MathF.Min(line1.p1.Y, line1.p2.Y)))
+            {
                 return true;
+            }
 
             return false;
         }
 
-        int direction(Vector2 a, Vector2 b, Vector2 c)
+        private int Direction(Vector2 a, Vector2 b, Vector2 c)
         {
             int val = (int)((b.Y - a.Y) * (c.X - b.X) - (b.X - a.X) * (c.Y - b.Y));
             if (val == 0)
-                return 0;     //colinear
+            {
+                return 0;
+            }
             else if (val < 0)
-                return 2;    //anti-clockwise direction
-            return 1;    //clockwise direction
+            {
+                //CCW direction
+                return 2;
+            }
+            else
+            {
+                //CW direction
+                return 1;
+            }
         }
 
-        bool isIntersect(Line l1, Line l2)
+        private bool IsIntersect(Line line1, Line line2)
         {
-            //four direction for two lines and points of other line
-            int dir1 = direction(l1.p1, l1.p2, l2.p1);
-            int dir2 = direction(l1.p1, l1.p2, l2.p2);
-            int dir3 = direction(l2.p1, l2.p2, l1.p1);
-            int dir4 = direction(l2.p1, l2.p2, l1.p2);
+            int dir1 = Direction(line1.p1, line1.p2, line2.p1);
+            int dir2 = Direction(line1.p1, line1.p2, line2.p2);
+            int dir3 = Direction(line2.p1, line2.p2, line1.p1);
+            int dir4 = Direction(line2.p1, line2.p2, line1.p2);
 
             if (dir1 != dir2 && dir3 != dir4)
-                return true; //they are intersecting
+                return true; //Intersecting
 
-            if (dir1 == 0 && onLine(l1, l2.p1)) //when p2 of line2 are on the line1
+            if (dir1 == 0 && OnLine(line1, line2.p1)) //When p2 of line2 are on the line1
                 return true;
 
-            if (dir2 == 0 && onLine(l1, l2.p2)) //when p1 of line2 are on the line1
+            if (dir2 == 0 && OnLine(line1, line2.p2)) //When p1 of line2 are on the line1
                 return true;
 
-            if (dir3 == 0 && onLine(l2, l1.p1)) //when p2 of line1 are on the line2
+            if (dir3 == 0 && OnLine(line2, line1.p1)) //When p2 of line1 are on the line2
                 return true;
 
-            if (dir4 == 0 && onLine(l2, l1.p2)) //when p1 of line1 are on the line2
+            if (dir4 == 0 && OnLine(line2, line1.p2)) //When p1 of line1 are on the line2
                 return true;
 
             return false;
@@ -82,7 +92,7 @@ namespace VMFConverter
 
         public bool Intersects(LineEquation otherLine)
         {
-            return isIntersect(new Line() { p1 = Start, p2 = End }, new Line() { p1 = otherLine.Start, p2 = otherLine.End });
+            return IsIntersect(new Line() { p1 = Start, p2 = End }, new Line() { p1 = otherLine.Start, p2 = otherLine.End });
         }
 
 
@@ -90,13 +100,15 @@ namespace VMFConverter
         {
             intersectionPoint = new Vector2(0, 0);
 
-            if(!isIntersect(new Line() { p1 = Start, p2 = End }, new Line() { p1 = otherLine.Start, p2 = otherLine.End }))
+            if(!IsIntersect(new Line() { p1 = Start, p2 = End }, new Line() { p1 = otherLine.Start, p2 = otherLine.End }))
             {
                 return false;
             }
 
             if (IsVertical && otherLine.IsVertical)
+            {
                 return false;
+            }
             if (IsVertical || otherLine.IsVertical)
             {
                 intersectionPoint = GetIntersectionPointIfOneIsVertical(otherLine, this);

@@ -36,6 +36,9 @@ namespace VMFConverter
         }
     }
 
+    /// <summary>
+    /// Polygon class, one side is composed of a set of points representing a 2D polygon. This shape can then be rotated or otherwise to create slopes, etc.
+    /// </summary>
     public class Polygon : Shape
     {
         public Polygon() { }
@@ -271,8 +274,6 @@ namespace VMFConverter
                     angle += 360;
                 }
 
-                //Check for concave
-
                 Sides[sidesIndex].Plane = new Vector3[]
                 {
                         Position + new Vector3(first.X, first.Y, -(shapeData.Depth * 0.5f)),
@@ -280,7 +281,6 @@ namespace VMFConverter
                         Position + new Vector3(second.X, second.Y, (shapeData.Depth * 0.5f))
                 };
 
-                //bool reverse = angle % 90 != 0;
                 bool useFirstMethod = (angle > 0 && angle <= 90) || (angle > 180 && angle <= 270);
                 if (useFirstMethod)
                 {
@@ -534,6 +534,7 @@ namespace VMFConverter
 
         protected virtual void CalculateUVs()
         {
+            //I don't think I'm actually doing this exactly right for Source - unsure how to fix perfectly, and it works good enough for now?
             for (int i = 0; i < Sides.Length; i++)
             {
                 Vector3 U = Sides[i].Plane[1] - Sides[i].Plane[0];
@@ -571,6 +572,7 @@ namespace VMFConverter
 
     public class StairData
     {
+        public string Visgroup;
         public int FuncDetailId = -1;
         public Vector3 Position;
         public int StairCount;
@@ -795,6 +797,11 @@ namespace VMFConverter
                 }
             }
 
+            for (int i = 0; i < shapes.Count; i++)
+            {
+                shapes[i].Visgroup = data.Visgroup;
+            }
+
 
             return shapes;
         }
@@ -840,6 +847,10 @@ namespace VMFConverter
                     continue;
                 }
 
+                //Okay basically all the shit I'm doing here is getting the vertex normal of the current point
+                //and basing how the wall should be made based off that, so all the walls end up as trapazoids.
+                //The only exception is if a wall piece is missing, I then get the intersection based on which
+                //side of the wall it is, and try to flatten it. It's not perfect but it works?
                 int index1 = (i - 1) % polyData.PolygonPoints.Count;
                 if (index1 == -1)
                 {
@@ -866,11 +877,6 @@ namespace VMFConverter
                 points.Add(c);
                 points.Add(b);
 
-                //for (int j = 0; j < points.Count; j++)
-                //{
-                //    points[j] /= 128;
-                //}
-
                 if (wallData.facesIndicesToSkip.Contains(i + 1))
                 {
                     LineEquation first = new LineEquation(points[2], points[2] - bcNormal);
@@ -896,14 +902,7 @@ namespace VMFConverter
                 points = new List<Vector2>();
             }
 
-            //for (int i = 0; i < allPoints.Count; i++)
-            //{
-            //    for (int j = 0; j < allPoints[i].Count; j++)
-            //    {
-            //        allPoints[i][j] /= 128;
-            //    }
-            //}
-
+            //Idk there were edge cases I had NAN values and they didnt seem to affect anything sooooooo
             for (int i = allPoints.Count - 1; i >= 0; i--)
             {
                 bool hasNan = false;
@@ -955,124 +954,6 @@ namespace VMFConverter
             }
 
             return finalPolygons;
-
-            #region Old
-#if false
-            for (int i = 0; i < polyData.PolygonPoints.Count; i++)
-            {
-                int index1 = i - 1;
-                if(index1 == -1)
-                {
-                    index1 = polyData.PolygonPoints.Count - 1;
-                }
-                int index2 = i;
-                int index3 = (i + 1) % polyData.PolygonPoints.Count;
-                Vector2 a = polyData.PolygonPoints[index1] * polyData.Scalar;
-                Vector2 b = polyData.PolygonPoints[index2] * polyData.Scalar;
-                Vector2 c = polyData.PolygonPoints[index3] * polyData.Scalar;
-                Vector2 abNormal = Vector2.Normalize(Shape.GetNormal2D(a, b));
-                Vector2 bcNormal = Vector2.Normalize(Shape.GetNormal2D(b, c));
-                Vector2 vertexNormal = Vector2.Normalize((abNormal + bcNormal)) * wallData.Thickness;
-
-                normals.Add(new List<Vector2>()
-                {
-                    Vector2.Lerp(a, b, 0.5f),
-                    Vector2.Lerp(a, b, 0.5f) + abNormal * (polyData.Scalar * 0.5f),
-                });
-                normals.Add(new List<Vector2>()
-                {
-                    Vector2.Lerp(b, c, 0.5f),
-                    Vector2.Lerp(b, c, 0.5f) + bcNormal * (polyData.Scalar * 0.5f),
-                });
-
-                Vector2 point = polyData.PolygonPoints[i] * polyData.Scalar + vertexNormal;
-                points.Add(point);
-                normals.Add(new List<Vector2>()
-                {
-                    polyData.PolygonPoints[i] * polyData.Scalar,
-                    point
-                });
-                if (i == 0 || i == polyData.PolygonPoints.Count - 1)
-                {
-                    lastFace.Add(point);
-                }
-            }
-
-            for (int i = polyData.PolygonPoints.Count - 1; i >= 0; i--)
-            {
-                Vector2 point = polyData.PolygonPoints[i] * polyData.Scalar;
-                points.Add(point);
-
-                if (i == 0 || i == polyData.PolygonPoints.Count - 1)
-                {
-                    lastFace.Add(point);
-                }
-            }
-
-            lastFace = new List<Vector2>()
-            {
-                lastFace[1],
-                lastFace[0],
-                lastFace[3],
-                lastFace[2]
-            };
-
-            float scale = 0.3f;
-            Pen whitePen = new Pen(Color.White, 3);
-            Pen greyPen = new Pen(Color.Gray, 3);
-            Pen blackPen = new Pen(Color.Black, 3);
-            Pen redPen = new Pen(Color.Red, 3);
-            Pen bluePen = new Pen(Color.Blue, 3);
-            Pen greenPen = new Pen(Color.Green, 3);
-            using (Bitmap canvas = new Bitmap(500, 500))
-            {
-                using (Graphics g = Graphics.FromImage(canvas))
-                {
-                    g.FillRectangle(Brushes.White, new Rectangle(0, 0, 500, 500));
-
-                    for (int j = 0; j < points.Count; j++)
-                    {
-                        int iN = (j + 1) % points.Count;
-                        Point p1 = new Point((int)(points[j].X * scale + 100), (int)(points[j].Y * scale + 100));
-                        Point p2 = new Point((int)(points[iN].X * scale + 100), (int)(points[iN].Y * scale + 100));
-                    
-                        g.DrawLine(j < polyData.PolygonPoints.Count ? greyPen : blackPen, p1, p2);
-                    }
-                    
-                    for (int j = 0; j < normals.Count; j++)
-                    {
-                        g.DrawLine(j % 3 == 2 ? redPen : bluePen, new Point((int)(normals[j][0].X * scale) + 100, (int)(normals[j][0].Y * scale) + 100), new Point((int)(normals[j][1].X * scale) + 100, (int)(normals[j][1].Y * scale) + 100));
-                    }
-                }
-            
-                canvas.Save(@"C:\Users\funny\source\repos\VMFConverter\Gen" + (0) + ".png");
-            }
-
-            return new List<Polygon>()
-            {
-                new Polygon()
-                {
-                    Position = polygon.Position + new Vector3(0, 0, polygon.Position.Z * 0.5f),
-                    Data = new PolygonShapeData()
-                    {
-                        Depth = wallData.Height,
-                        Scalar = 1,
-                        PolygonPoints = points
-                    }
-                },
-                new Polygon()
-                {
-                    Position = polygon.Position + new Vector3(0, 0, polygon.Position.Z * 0.5f),
-                    Data = new PolygonShapeData()
-                    {
-                        Depth = wallData.Height,
-                        Scalar = 1,
-                        PolygonPoints = lastFace
-                    }
-                }
-            };
-#endif
-            #endregion
         }
     }
 

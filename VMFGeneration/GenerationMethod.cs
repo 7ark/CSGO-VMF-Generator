@@ -19,25 +19,16 @@ namespace VMFConverter
         }
 
         public string InputFilePath;
-        public int Detail = 10;
-        
-        private List<Vector2> RemoveDuplicates(List<Vector2> dups)
-        {
-
-            List<Vector2> result = new List<Vector2>();
-
-            for (int i = 0; i < dups.Count; i++)
-            {
-                int iN = (i + 1) % dups.Count;
-
-            }
-
-            return result;
-        }
 
         public override List<Shape> GetBrushes()
         {
             List<Shape> shapes = new List<Shape>();
+
+            if(!File.Exists(InputFilePath))
+            {
+                Console.WriteLine("ERROR: Given file path " + InputFilePath + " does not exist! Not running image generation.");
+                return shapes;
+            }
 
             List<Vector2> edgePositions = new List<Vector2>();
             Bitmap map = new Bitmap(InputFilePath);
@@ -50,7 +41,7 @@ namespace VMFConverter
             {
                 for (int y = 0; y < grid.GetLength(1); y++)
                 {
-                    grid[x, y] = map.GetPixel(x, y).G > 20 ? 1 : 0;
+                    grid[x, y] = map.GetPixel(x, y).G > 50 ? 1 : 0;
                     testingGrid[x, y] = grid[x, y];
                 }
             }
@@ -203,14 +194,9 @@ namespace VMFConverter
                     fromConnections.Add(i, new List<int>());
                 }
 
-                Random rand = new Random();
-                int flatnessAreaCheck = 50;
-
                 for (int i = 0; i < closestOptions.Count; i++)
                 {
                     List<Point> line = new List<Point>();
-
-                    //int indexToUse = -1;// rand.Next(0, closestOptions[i].Count);
 
                     int rayLength = 20;
 
@@ -297,13 +283,12 @@ namespace VMFConverter
                                              "Bottom Middle Check: " + (outsideCheckEnd + insideCheckEnd) + "\n" +
                                              "Bottom Length Check: " + (lengthDifferenceEnd) + "/" + (rayLength * 4), 
                                              SystemFonts.DefaultFont, Brushes.Black, new PointF(0, 0));
-                            }, 600, 600);
+                            }, map.Width, map.Height);
                         }
                     }
                     flatnessValues.Sort((x, y) => { return x.FlatnessValue.CompareTo(y.FlatnessValue); });
 
-                    //Not sure if theres a better way to chose out of the top contenders, maybe explore later
-
+                    //Not sure if theres a better way to choose out of the top contenders, maybe explore later
                     Point current = flatnessValues[0].Point;
                     Point goal = hitPoints[new Point((int)current.X, (int)current.Y)];
 
@@ -401,32 +386,32 @@ namespace VMFConverter
                 }
 
 
-                //VMFDebug.CreateDebugImage("Test", onDraw: (g) =>
-                //{
-                //    for (int i = 0; i < grid.GetLength(0); i++)
-                //    {
-                //        for (int j = 0; j < grid.GetLength(1); j++)
-                //        {
-                //            g.DrawRectangle(grid[i, j] == 0 ? Pens.Gray : Pens.White, new Rectangle(i, j, 1, 1));
-                //        }
-                //    }
-                //    for (int i = 0; i < emptySpots.Count; i++)
-                //    {
-                //        g.DrawString(i.ToString(), SystemFonts.DefaultFont, Brushes.Red, new PointF(emptySpots[i][0].X, emptySpots[i][0].Y));
-                //    }
-                //    for (int i = 0; i < linesToCreate.Count; i++)
-                //    {
-                //        Vector2 pos = Vector2.Lerp(new Vector2(linesToCreate[i][0].X, linesToCreate[i][0].Y), new Vector2(linesToCreate[i][linesToCreate[i].Count - 1].X, linesToCreate[i][linesToCreate[i].Count - 1].Y), 0.5f);
-                //        g.DrawString(i.ToString(), SystemFonts.DefaultFont, Brushes.Blue, new PointF(pos.X, pos.Y));
-                //    }
-                //    for (int i = 0; i < closestOptions.Count; i++)
-                //    {
-                //        for (int j = 0; j < closestOptions[i].Count; j++)
-                //        {
-                //            g.DrawRectangle(Pens.Black, new Rectangle((int)closestOptions[i][j].X, (int)closestOptions[i][j].Y, 1, 1));
-                //        }
-                //    }
-                //}, map.Width, map.Height);
+                VMFDebug.CreateDebugImage("LoopPoints", onDraw: (g) =>
+                {
+                    for (int i = 0; i < grid.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < grid.GetLength(1); j++)
+                        {
+                            g.DrawRectangle(grid[i, j] == 0 ? Pens.Gray : Pens.White, new Rectangle(i, j, 1, 1));
+                        }
+                    }
+                    for (int i = 0; i < emptySpots.Count; i++)
+                    {
+                        g.DrawString(i.ToString(), SystemFonts.DefaultFont, Brushes.Red, new PointF(emptySpots[i][0].X, emptySpots[i][0].Y));
+                    }
+                    for (int i = 0; i < linesToCreate.Count; i++)
+                    {
+                        Vector2 pos = Vector2.Lerp(new Vector2(linesToCreate[i][0].X, linesToCreate[i][0].Y), new Vector2(linesToCreate[i][linesToCreate[i].Count - 1].X, linesToCreate[i][linesToCreate[i].Count - 1].Y), 0.5f);
+                        g.DrawString(i.ToString(), SystemFonts.DefaultFont, Brushes.Blue, new PointF(pos.X, pos.Y));
+                    }
+                    for (int i = 0; i < closestOptions.Count; i++)
+                    {
+                        for (int j = 0; j < closestOptions[i].Count; j++)
+                        {
+                            g.DrawRectangle(Pens.Black, new Rectangle((int)closestOptions[i][j].X, (int)closestOptions[i][j].Y, 1, 1));
+                        }
+                    }
+                }, map.Width, map.Height);
             }
 
 
@@ -450,9 +435,10 @@ namespace VMFConverter
 
             List<int> badValues = new List<int>();
 
-            for (int i = 0; i < linedUpPoints.Count; i++)
+            bool swapValueToRemove = true;
+            for (int i = linedUpPoints.Count - 1; i >= 0; i--)
             {
-                for (int j = i; j < linedUpPoints.Count; j++)
+                for (int j = linedUpPoints.Count - 1; j >= i; j--)
                 {
                     if (i == j)
                     {
@@ -463,9 +449,19 @@ namespace VMFConverter
 
                     if (dist <= 2 && !sharedPoints.Contains(linedUpPoints[i]) && !sharedPoints.Contains(linedUpPoints[j]))
                     {
-                        if (j - i < 4)
+                        int diff = j - i;
+                        if (diff < 4)
                         {
-                            badValues.Add(j);
+                            if(swapValueToRemove)
+                            {
+                                badValues.Add(i);
+                            }
+                            else
+                            {
+                                badValues.Add(j);
+                            }
+
+                            swapValueToRemove = !swapValueToRemove;
                         }
                         else
                         {
@@ -481,7 +477,7 @@ namespace VMFConverter
             {
                 linedUpPoints[key] = toMove[key];
             }
-
+            
             for (int i = linedUpPoints.Count; i >= 0; i--)
             {
                 if(badValues.Contains(i))
@@ -489,18 +485,10 @@ namespace VMFConverter
                     linedUpPoints.RemoveAt(i);
                 }
             }
-            //List<Vector2> dupPoints = linedUpPoints.GroupBy(x => x).Where(g => g.Count() > 1).Select(x => x.Key).ToList();
-            //}
 
-            float scale = 0.7f;
             VMFDebug.CreateDebugImage("ImageProcess", onDraw: (g) =>
             {
-                //for (int i = 0; i < results.Count; i++)
-                //{
-                //    Point A = new Point((int)results[i].X, (int)results[i].Y);
-                //    Point B = new Point((int)results[(i + 1) % results.Count].X, (int)results[(i + 1) % results.Count].Y);
-                //    g.DrawLine(new Pen(Color.FromArgb((i % 205) + 50, (i % 205) + 50, (i % 205) + 50)), A, B);
-                //}
+                float scale = 0.4f;
 
                 for (int i = 0; i < linedUpPoints.Count; i++)
                 {
@@ -522,15 +510,6 @@ namespace VMFConverter
                 {
                     g.DrawRectangle(new Pen(Color.FromArgb(i % 255, i % 255, i % 255)), new Rectangle((int)(linedUpPoints[i].X * scale), (int)(linedUpPoints[i].Y * scale), 1, 1));
                 }
-                
-                //for (int x = 0; x < grid.GetLength(0); x++)
-                //{
-                //    for (int y = 0; y < grid.GetLength(1); y++)
-                //    {
-                //        if (grid[x, y] == 1)
-                //            g.DrawRectangle(new Pen(Color.Black), new Rectangle((int)(x * scale), (int)(y * scale), 1, 1));
-                //    }
-                //}
             });
 
 
@@ -657,97 +636,7 @@ namespace VMFConverter
         {
             List<Shape> shapes = new List<Shape>();
 
-            //shapes.Add(new Polygon()
-            //{
-            //    Position = new Vector3(0, 0, -16),
-            //    Data = new PolygonShapeData()
-            //    {
-            //        Depth = 32,
-            //        Scalar = 256,
-            //        PolygonPoints = new List<Vector2>()
-            //        {
-            //            new Vector2(-2, -2),
-            //            new Vector2(2, -2),
-            //            new Vector2(2, 2),
-            //            new Vector2(-2, 2),
-            //        }
-            //    }
-            //});
-
-            //Polygon floor = new Polygon()
-            //{
-            //    Position = new Vector3(-256, -256, 16),
-            //    Data = new PolygonShapeData()
-            //    {
-            //        Depth = 32,
-            //        Scalar = 128,
-            //        PolygonPoints = new List<Vector2>()
-            //        {
-            //            new Vector2(0, 0),
-            //            new Vector2(5, 0),
-            //            new Vector2(6, 2),
-            //            new Vector2(6, 5),
-            //            new Vector2(4, 6),
-            //            new Vector2(1, 6),
-            //            new Vector2(0, 4),
-            //            new Vector2(0, 2),
-            //            new Vector2(1, 2),
-            //            new Vector2(1, 4),
-            //            new Vector2(4, 4),
-            //            new Vector2(4, 2),
-            //            new Vector2(3, 1),
-            //            new Vector2(0, 1)
-            //        }
-            //    }
-            //};
-
-            //Polygon floor = new Polygon()
-            //{
-            //    Position = new Vector3(-256, -256, 16),
-            //    Data = new PolygonShapeData()
-            //    {
-            //        Depth = 32,
-            //        Scalar = 128,
-            //        PolygonPoints = new List<Vector2>()
-            //        {
-            //            new Vector2(0, 0),
-            //            new Vector2(3, 0),
-            //            new Vector2(6, 2),
-            //            new Vector2(6, 4),
-            //            new Vector2(8, 4),
-            //            new Vector2(9, 5),
-            //            new Vector2(9, 7),
-            //            new Vector2(8, 7),
-            //            new Vector2(8, 6),
-            //            new Vector2(7, 5),
-            //            new Vector2(6, 5),
-            //            new Vector2(6, 6),
-            //            new Vector2(5, 7),
-            //            new Vector2(3, 7),
-            //            new Vector2(3, 8),
-            //            new Vector2(2, 9),
-            //            new Vector2(1, 9),
-            //            new Vector2(0, 8),
-            //            new Vector2(0, 7),
-            //            new Vector2(1, 6),
-            //            new Vector2(3, 6),
-            //            new Vector2(3, 4.5f),
-            //            new Vector2(2, 5),
-            //            new Vector2(0, 5),
-            //            new Vector2(0, 2),//
-            //            new Vector2(1, 2),//
-            //            new Vector2(1, 4),
-            //            new Vector2(2, 4),
-            //            new Vector2(3, 3),
-            //            new Vector2(3, 2),
-            //            new Vector2(2, 1),
-            //            new Vector2(1, 1),
-            //            new Vector2(1, 2),
-            //            new Vector2(0, 2),
-            //        }
-            //    }
-            //};
-
+            //Manaully made convex shape
             Polygon floor = new Polygon()
             {
                 Visgroup = Visgroups.TAR_LAYOUT,
@@ -814,80 +703,81 @@ namespace VMFConverter
                     }
                 }
             };
-
             shapes.Add(floor);
 
 
-            //StairsGenerator stairsGenerator = new StairsGenerator();
-            //shapes.AddRange(stairsGenerator.Generate(new StairData()
-            //{
-            //    RailingThickness = 8,
-            //    FuncDetailId = EntityTemplates.FuncDetailID++,
-            //    Position = new Vector3(-256, 0, 0),
-            //    Run = 12,
-            //    Rise = 8,
-            //    StairCount = 16,
-            //    StairWidth = 128,
-            //    Direction = Direction.East
-            //}, 
-            //new RotationData()
-            //{
-            //    RotationAxis = new Vector3(0, 0, 1),
-            //    RotationAngle = 0
-            //}
-            //));
-            //shapes.AddRange(stairsGenerator.Generate(new StairData()
-            //{
-            //    RailingThickness = 8,
-            //    FuncDetailId = EntityTemplates.FuncDetailID++,
-            //    Position = new Vector3(256, 0, 0),
-            //    Run = 12,
-            //    Rise = 8,
-            //    StairCount = 16,
-            //    StairWidth = 128,
-            //    Direction = Direction.West
-            //},
-            //new RotationData()
-            //{
-            //    RotationAxis = new Vector3(0, 0, 1),
-            //    RotationAngle = 0
-            //}
-            //));
-            //shapes.AddRange(stairsGenerator.Generate(new StairData()
-            //{
-            //    RailingThickness = 8,
-            //    FuncDetailId = EntityTemplates.FuncDetailID++,
-            //    Position = new Vector3(0, -256, 0),
-            //    Run = 12,
-            //    Rise = 8,
-            //    StairCount = 16,
-            //    StairWidth = 128,
-            //    Direction = Direction.North
-            //},
-            //new RotationData()
-            //{
-            //    RotationAxis = new Vector3(0, 0, 1),
-            //    RotationAngle = 0
-            //}
-            //));
-            //shapes.AddRange(StairsGenerator.Generate(new StairData()
-            //{
-            //    RailingThickness = 8,
-            //    FuncDetailId = EntityTemplates.FuncDetailID++,
-            //    Position = new Vector3(0, 256, 0),
-            //    Run = 12,
-            //    Rise = 8,
-            //    StairCount = 16,
-            //    StairWidth = 128,
-            //    Direction = Direction.South
-            //},
-            //new RotationData()
-            //{
-            //    RotationAxis = new Vector3(0, 0, 1),
-            //    RotationAngle = 0
-            //}
-            //));
-
+            shapes.AddRange(StairsGenerator.Generate(new StairData()
+            {
+                Visgroup = Visgroups.TAR_LAYOUT,
+                RailingThickness = 8,
+                FuncDetailId = EntityTemplates.FuncDetailID++,
+                Position = new Vector3(-256, 0, 128),
+                Run = 12,
+                Rise = 8,
+                StairCount = 16,
+                StairWidth = 128,
+                Direction = Direction.East
+            }, 
+            new RotationData()
+            {
+                RotationAxis = new Vector3(0, 0, 1),
+                RotationAngle = 0
+            }
+            ));
+            shapes.AddRange(StairsGenerator.Generate(new StairData()
+            {
+                Visgroup = Visgroups.TAR_LAYOUT,
+                RailingThickness = 8,
+                FuncDetailId = EntityTemplates.FuncDetailID++,
+                Position = new Vector3(256, 0, 128),
+                Run = 12,
+                Rise = 8,
+                StairCount = 16,
+                StairWidth = 128,
+                Direction = Direction.West
+            },
+            new RotationData()
+            {
+                RotationAxis = new Vector3(0, 0, 1),
+                RotationAngle = 0
+            }
+            ));
+            shapes.AddRange(StairsGenerator.Generate(new StairData()
+            {
+                Visgroup = Visgroups.TAR_LAYOUT,
+                RailingThickness = 8,
+                FuncDetailId = EntityTemplates.FuncDetailID++,
+                Position = new Vector3(0, -256, 128),
+                Run = 12,
+                Rise = 8,
+                StairCount = 16,
+                StairWidth = 128,
+                Direction = Direction.North
+            },
+            new RotationData()
+            {
+                RotationAxis = new Vector3(0, 0, 1),
+                RotationAngle = 0
+            }
+            ));
+            shapes.AddRange(StairsGenerator.Generate(new StairData()
+            {
+                Visgroup = Visgroups.TAR_LAYOUT,
+                RailingThickness = 8,
+                FuncDetailId = EntityTemplates.FuncDetailID++,
+                Position = new Vector3(0, 256, 128),
+                Run = 12,
+                Rise = 8,
+                StairCount = 16,
+                StairWidth = 128,
+                Direction = Direction.South
+            },
+            new RotationData()
+            {
+                RotationAxis = new Vector3(0, 0, 1),
+                RotationAngle = 0
+            }
+            ));
 
             shapes.AddRange(WallGenerator.CreateWalls(floor, new WallData()
             {
@@ -940,7 +830,7 @@ namespace VMFConverter
                 Texture = this.Texture,
                 Data = new CubeShapeData()
                 {
-                    Size = new Vector3(Size.X, Thickness, Size.Y) * Scalar * 2
+                    Size = new Vector3(Size.X, Thickness, Size.Z) * Scalar * 2
                 }
             });
 
@@ -951,7 +841,7 @@ namespace VMFConverter
                 Texture = this.Texture,
                 Data = new CubeShapeData()
                 {
-                    Size = new Vector3(Size.X, Thickness, Size.Y) * Scalar * 2
+                    Size = new Vector3(Size.X, Thickness, Size.Z) * Scalar * 2
                 }
             });
 
@@ -962,7 +852,7 @@ namespace VMFConverter
                 Texture = this.Texture,
                 Data = new CubeShapeData()
                 {
-                    Size = new Vector3(Thickness, Size.X, Size.Y) * Scalar * 2
+                    Size = new Vector3(Thickness, Size.Y, Size.Z) * Scalar * 2
                 }
             });
 
@@ -973,7 +863,7 @@ namespace VMFConverter
                 Texture = this.Texture,
                 Data = new CubeShapeData()
                 {
-                    Size = new Vector3(Thickness, Size.X, Size.Y) * Scalar * 2
+                    Size = new Vector3(Thickness, Size.Y, Size.Z) * Scalar * 2
                 }
             });
 

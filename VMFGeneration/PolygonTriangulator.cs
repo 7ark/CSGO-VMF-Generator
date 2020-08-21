@@ -9,13 +9,18 @@ namespace VMFConverter
 {
     public class PolygonTriangulator
     {
-
+        /// <summary>
+        /// My triangulation function. I used this https://www.gamedev.net/tutorials/programming/graphics/polygon-triangulation-r3334/ 
+        /// as a guide and it was incredibly helpful. I also made my own modifications for my own usecases and attempts at fixes.
+        /// </summary>
+        /// <param name="Polygon"></param>
+        /// <returns></returns>
         public static List<List<Vector2>> Triangulate(List<Vector2> Polygon)
         {
-            //for (int i = 0; i < Polygon.Count; i++)
-            //{
-            //    Polygon[i] /= 128;
-            //}
+            //These are purely dummy values used for debug drawing
+            int c2 = 0;
+            int c = 0;
+
             List<Vector2> sharedValues = Polygon.GroupBy(x => x).Where(g => g.Count() > 1).Select(x => x.Key).ToList();
 
             float amountToRaise = 0.1f;
@@ -57,6 +62,9 @@ namespace VMFConverter
                 }
             }
 
+            //So this is all my attempt to bypass issues with connected polygons. When I have two edges that are right next to each other, and share points
+            //I detect those, and one set I move *slightly* higher. That way the algorithm will treat them separately and doesnt get confused.
+            //Then when its done all it need to do, I simply move them back down. It works okay enough? Some work arounds were needed but its working.
             foreach (Vector2 pos in highestIndex.Keys)
             {
                 Polygon[highestIndex[pos]] = new Vector2(Polygon[highestIndex[pos]].X, Polygon[highestIndex[pos]].Y + amountToRaise);
@@ -66,8 +74,6 @@ namespace VMFConverter
             List<Vector2> remainingValues = new List<Vector2>(Polygon);
             List<List<Vector2>> result = new List<List<Vector2>>();
 
-            int c2 = 0;
-            int c = 0;
             int index = -1;
             bool triangleMade = true;
             while (triangleMade)
@@ -135,6 +141,7 @@ namespace VMFConverter
                     });
                     c2++;
 
+                    //2D cross product or wedge product or whatever you wanna call it
                     Vector2 v1 = next - curr;
                     Vector2 v2 = prev - curr;
                     float val = (v1.X * v2.Y) - (v1.Y * v2.X);
@@ -143,11 +150,6 @@ namespace VMFConverter
                     {
                         continue;
                     }
-
-                    //if (distanceExtended < distanceBetweenPrevNext)
-                    //{
-                    //    continue;
-                    //}
 
                     bool noGood = false;
                     for (int i = 0; i < remainingValues.Count; i++)
@@ -192,7 +194,7 @@ namespace VMFConverter
                     {
                         VMFDebug.CreateDebugImage("TriangulationStep" + c, onDraw: (g) =>
                         {
-                            float scale = 0.2f;
+                            float scale = 0.15f;
                             Point positionAdjustment = new Point(0, 0);
                             Pen whitePen = new Pen(Color.White, 3);
                             Pen greyPen = new Pen(Color.Gray, 3);
@@ -260,6 +262,7 @@ namespace VMFConverter
                 }
             }
 
+            //Resetting the shared points values
             for (int i = 0; i < result.Count; i++)
             {
                 for (int j = 0; j < result[i].Count; j++)
@@ -306,7 +309,7 @@ namespace VMFConverter
             return result;
         }
 
-        private static float sign(Vector2 p1, Vector2 p2, Vector2 p3)
+        private static float Sign(Vector2 p1, Vector2 p2, Vector2 p3)
         {
             return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
         }
@@ -316,46 +319,14 @@ namespace VMFConverter
             float d1, d2, d3;
             bool has_neg, has_pos;
 
-            d1 = sign(pt, v1, v2);
-            d2 = sign(pt, v2, v3);
-            d3 = sign(pt, v3, v1);
+            d1 = Sign(pt, v1, v2);
+            d2 = Sign(pt, v2, v3);
+            d3 = Sign(pt, v3, v1);
 
             has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
             has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
             return !(has_neg && has_pos);
         }
-    }
-}
-
-public class Delauney
-{
-    public static List<Vector2> Run(List<Vector2> points)
-    {
-        List<Vector2> result = new List<Vector2>();
-
-        int n = 0;
-        for (int x = 0; x < 500; x++)
-        {
-            for (int y = 0; y < 500; y++)
-            {
-                n = 0;
-                int nX = (int)points[n].X;
-                int nY = (int)points[n].Y;
-                for (byte i = 0; i < 10; i++)
-                {
-                    int cX = (int)points[i].X;
-                    int cY = (int)points[i].Y;
-                    if (Vector2.Distance(new Vector2(cX, cY), new Vector2(x, y)) < Vector2.Distance(new Vector2(nX, nY), new Vector2(x, y)))
-                        n = i;
-                    nX = (int)points[n].X;
-                    nY = (int)points[n].Y;
-                }
-
-                result.Add(new Vector2(nX, nY));
-            }
-        }
-
-        return result;
     }
 }
