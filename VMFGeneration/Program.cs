@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace VMFConverter
 {
@@ -18,6 +19,10 @@ namespace VMFConverter
 
             Generator gen = new Generator();
             File.WriteAllText(vmfPath, gen.Generate(vmfPath));
+
+            //Thanks to Pikapi for reminding me to add this
+            Console.WriteLine("Press any key to continue");
+            Console.ReadKey();
         }
     }
 }
