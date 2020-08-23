@@ -127,6 +127,8 @@ namespace VMFConverter
                 WriteShapes(ref uniqueVMF, funcDetails[id], true);
                 uniqueVMF += "}" + Environment.NewLine;
             }
+            Console.WriteLine("done, press any key to exit.");
+            Console.ReadKey();
 
             return uniqueVMF;
         }

@@ -2,6 +2,8 @@
 
 This is a generator with the purpose of making an easy way to generate CS:GO maps or making it easier to generate things in the VMF format (With a focus on CS:GO)
 
+See my broad technical explanation here: [CS:GO VMF Generator Explained](http://www.corykoseck.com/2020/08/21/csgo-vmf-generator-explained/)
+
 This is a fairly basic library, and I'm open to pull requests for improvements. I've really only done lots of early setup, and it's missing a lot of potentially great features.
 Currently it supports:
 - Generating cubes, stairs, slopes, and any flat 2D polygon (concave or convex, it will automatically convert) that can be rotated.
@@ -62,3 +64,7 @@ For anything else, it should all be fairly self explanatory. You'll need to look
 ## Pull Requests
 I am open to any pull requests to improve the code base, adding new features, even if its just adding new Entity Templates, Textures, etc. 
 This is not a project I plan to support heavily, it is something I update in my spare time to expand and improve.
+
+## Personal Support
+If you’re interested in supporting me personally, you can follow me on [Twitter](https://twitter.com/The7ark) or [Instagram](https://www.instagram.com/the7ark/). 
+If you want to support me financially, I have a [Patreon](https://www.patreon.com/7ark) and a [Ko-fi](https://ko-fi.com/sevenark).
