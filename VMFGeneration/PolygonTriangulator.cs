@@ -96,8 +96,8 @@ namespace VMFConverter
 
                     VMFDebug.CreateDebugImage("TriangulationStepAttempt" + c2, onDraw: (g) =>
                     {
-                        float scale = 0.2f;
-                        Point positionAdjustment = new Point(0, 0);
+                        float scale = 0.14f;
+                        Point positionAdjustment = new Point(250, 50);
                         Pen whitePen = new Pen(Color.White, 3);
                         Pen greyPen = new Pen(Color.Gray, 3);
                         Pen blackPen = new Pen(Color.Black, 3);
@@ -194,8 +194,8 @@ namespace VMFConverter
                     {
                         VMFDebug.CreateDebugImage("TriangulationStep" + c, onDraw: (g) =>
                         {
-                            float scale = 0.15f;
-                            Point positionAdjustment = new Point(0, 0);
+                            float scale = 0.13f;
+                            Point positionAdjustment = new Point(200, 100);
                             Pen whitePen = new Pen(Color.White, 3);
                             Pen greyPen = new Pen(Color.Gray, 3);
                             Pen blackPen = new Pen(Color.Black, 3);

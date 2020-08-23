@@ -17,11 +17,11 @@ namespace VMFGenerator
 
             //Generation Methods
             generationMethods = new List<GenerationMethod>();
-            generationMethods.Add(new MiscGenerationMethod());
-            //generationMethods.Add(new ImageGenerationMethod()
-            //{
-            //    InputFilePath = Directory.GetCurrentDirectory() + @"\Input\InputImage.png"
-            //});
+            //generationMethods.Add(new MiscGenerationMethod());
+            generationMethods.Add(new ImageGenerationMethod()
+            {
+                InputFilePath = Directory.GetCurrentDirectory() + @"\Input\InputImage.png"
+            });
             generationMethods.Add(new HollowCubeGenerationMethod()
             {
                 Position = new Vector3(0, 0, 5f),
@@ -41,10 +41,10 @@ namespace VMFGenerator
                 angles: new Vector3(-40, -60, 0),
                 pitch: -60));
             entities.Add(EntityTemplates.InfoPlayerTerrorist(
-                origin: new Vector3(0, 64, 0))
+                origin: new Vector3(0, -64, 32))
                 );
             entities.Add(EntityTemplates.InfoPlayerCounterTerrorist(
-                origin: new Vector3(128, 64, 0))
+                origin: new Vector3(128, -64, 32))
                 );
         }
     }

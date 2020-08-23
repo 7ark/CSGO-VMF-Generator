@@ -228,10 +228,10 @@ namespace VMFConverter
                             {
                                 if (shapes[j] is Polygon)
                                 {
-                                    VMFDebug.AddShapeToGraphics(g, shapes[j] as Polygon, greyPen);
+                                    VMFDebug.AddShapeToGraphics(g, shapes[j] as Polygon, greyPen, positionAdjustment: new Vector2(250, 50), scale: 0.14f);
                                 }
                             }
-                            VMFDebug.AddShapeToGraphics(g, shapes[i] as Polygon, redPen);
+                            VMFDebug.AddShapeToGraphics(g, shapes[i] as Polygon, redPen, positionAdjustment: new Vector2(250, 50), scale: 0.14f);
                         });
 
 
@@ -396,28 +396,31 @@ namespace VMFConverter
                     Pen bluePen = new Pen(Color.Blue, 3);
                     Pen greenPen = new Pen(Color.Green, 3);
 
+                    Vector2 posAdjust = new Vector2(250, 50);
+                    float scale = 0.14f;
+
                     for (int i = 0; i < options.Count; i++)
                     {
-                        VMFDebug.AddShapeToGraphics(g, options[i], greyPen);
+                        VMFDebug.AddShapeToGraphics(g, options[i], greyPen, positionAdjustment: posAdjust, scale: scale);
                     }
 
                     for (int i = 0; i < applicants.Count; i++)
                     {
-                        VMFDebug.AddShapeToGraphics(g, applicants[i], blackPen);
+                        VMFDebug.AddShapeToGraphics(g, applicants[i], blackPen, positionAdjustment: posAdjust, scale: scale);
                     }
 
                     if (found != null)
                     {
-                        VMFDebug.AddShapeToGraphics(g, found, bluePen);
+                        VMFDebug.AddShapeToGraphics(g, found, bluePen, positionAdjustment: posAdjust, scale: scale);
                     }
 
                     if (prev != null)
                     {
-                        VMFDebug.AddShapeToGraphics(g, prev, greenPen);
+                        VMFDebug.AddShapeToGraphics(g, prev, greenPen, positionAdjustment: posAdjust, scale: scale);
                     }
                     else
                     {
-                        VMFDebug.AddShapeToGraphics(g, currentPolygonToEval, redPen);
+                        VMFDebug.AddShapeToGraphics(g, currentPolygonToEval, redPen, positionAdjustment: posAdjust, scale: scale);
                     }
                 });
 

@@ -36,14 +36,14 @@ namespace VMFGenerator
                 canvas.Save(Directory.GetCurrentDirectory() + @"\DebugOutput\" + fileName + ".png");
             }
         }
-        public static void AddShapeToGraphics(Graphics g, Polygon polgon, Pen pen, float scale = 0.1f)
+        public static void AddShapeToGraphics(Graphics g, Polygon polgon, Pen pen, Vector2 positionAdjustment = new Vector2(), float scale = 0.1f)
         {
             List<Vector2> points = ((PolygonShapeData)polgon.Data).PolygonPoints;
             for (int i = 0; i < points.Count; i++)
             {
                 int iN = (i + 1) % points.Count;
-                Point p1 = new Point((int)(points[i].X * scale + 100), (int)(points[i].Y * scale + 100));
-                Point p2 = new Point((int)(points[iN].X * scale + 100), (int)(points[iN].Y * scale + 100));
+                Point p1 = new Point((int)(points[i].X * scale + positionAdjustment.X), (int)(points[i].Y * scale + positionAdjustment.Y));
+                Point p2 = new Point((int)(points[iN].X * scale + positionAdjustment.X), (int)(points[iN].Y * scale + positionAdjustment.Y));
 
                 g.DrawLine(pen, p1, p2);
             }
