@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using VMFGenerator;
 
-namespace VMFConverter
+namespace VMFGenerator
 {
     public class Generator
     {
@@ -42,8 +43,11 @@ namespace VMFConverter
     ";
         #endregion
 
+        private NumberFormatInfo nfi = new NumberFormatInfo();
         public string Generate(string path)
         {
+            nfi.NumberDecimalSeparator = ".";
+
             string uniqueVMF = string.Empty;
 
             List<Shape> shapes = new List<Shape>();
@@ -98,7 +102,7 @@ namespace VMFConverter
                 uniqueVMF += "\t\t\"name\" \"" + visgroups[i] + "\"" + Environment.NewLine;
                 uniqueVMF += "\t\t\"visgroupid\" \"" + Visgroups.VisgroupNameToID[visgroups[i]] + "\"" + Environment.NewLine;
                 Color col = Visgroups.VisgroupNameToColor[visgroups[i]];
-                uniqueVMF += "\t\t\"color\" \"" + col.R + " " + col.G + " " + col.B + "\"" + Environment.NewLine;
+                uniqueVMF += "\t\t\"color\" \"" + col.R.ToString(nfi) + " " + col.G.ToString(nfi) + " " + col.B.ToString(nfi) + "\"" + Environment.NewLine;
                 uniqueVMF += "\t}" + Environment.NewLine;
             }
             uniqueVMF += "}" + Environment.NewLine;
@@ -146,10 +150,10 @@ namespace VMFConverter
                     uniqueVMF += "\t\tside" + Environment.NewLine;
                     uniqueVMF += "\t\t{" + Environment.NewLine;
                     uniqueVMF += "\t\t\t\"id\" \"" + sides[j].ID + "\"" + Environment.NewLine +
-                    "\t\t\t\"plane\" \"(" + sides[j].Plane[0].X + " " + sides[j].Plane[0].Y + " " + sides[j].Plane[0].Z + ") (" + sides[j].Plane[1].X + " " + sides[j].Plane[1].Y + " " + sides[j].Plane[1].Z + ") (" + sides[j].Plane[2].X + " " + sides[j].Plane[2].Y + " " + sides[j].Plane[2].Z + ")\"" + Environment.NewLine +
+                    "\t\t\t\"plane\" \"(" + sides[j].Plane[0].X.ToString(nfi) + " " + sides[j].Plane[0].Y.ToString(nfi) + " " + sides[j].Plane[0].Z.ToString(nfi) + ") (" + sides[j].Plane[1].X.ToString(nfi) + " " + sides[j].Plane[1].Y.ToString(nfi) + " " + sides[j].Plane[1].Z.ToString(nfi) + ") (" + sides[j].Plane[2].X.ToString(nfi) + " " + sides[j].Plane[2].Y.ToString(nfi) + " " + sides[j].Plane[2].Z.ToString(nfi) + ")\"" + Environment.NewLine +
                     "\t\t\t\"material\" \"" + shapes[i].Texture + "\"" + Environment.NewLine +
-                    "\t\t\t\"uaxis\" \"[" + sides[j].UV[0].X + " " + sides[j].UV[0].Y + " " + sides[j].UV[0].Z + " " + sides[j].UV[0].W + "] 0.25\"" + Environment.NewLine +
-                    "\t\t\t\"vaxis\" \"[" + sides[j].UV[1].X + " " + sides[j].UV[1].Y + " " + sides[j].UV[1].Z + " " + sides[j].UV[1].W + "] 0.25\"" + Environment.NewLine +
+                    "\t\t\t\"uaxis\" \"[" + sides[j].UV[0].X.ToString(nfi) + " " + sides[j].UV[0].Y.ToString(nfi) + " " + sides[j].UV[0].Z.ToString(nfi) + " " + sides[j].UV[0].W.ToString(nfi) + "] 0.25\"" + Environment.NewLine +
+                    "\t\t\t\"vaxis\" \"[" + sides[j].UV[1].X.ToString(nfi) + " " + sides[j].UV[1].Y.ToString(nfi) + " " + sides[j].UV[1].Z.ToString(nfi) + " " + sides[j].UV[1].W.ToString(nfi) + "] 0.25\"" + Environment.NewLine +
                     "\t\t\t\"rotation\" \"0\"" + Environment.NewLine +
                     "\t\t\t\"lightmapscale\" \"16\"" + Environment.NewLine +
                     "\t\t\t\"smoothing_groups\" \"0\"" + Environment.NewLine;
@@ -397,7 +401,7 @@ namespace VMFConverter
                     Pen bluePen = new Pen(Color.Blue, 3);
                     Pen greenPen = new Pen(Color.Green, 3);
 
-                    Vector2 posAdjust = new Vector2(250, 50);
+                    Vector2 posAdjust = new Vector2(0, 50);
                     float scale = 0.14f;
 
                     for (int i = 0; i < options.Count; i++)

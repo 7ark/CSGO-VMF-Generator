@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Linq;
 using VMFGenerator;
 
-namespace VMFConverter
+namespace VMFGenerator
 {
     public class PolygonTriangulator
     {
@@ -278,7 +278,7 @@ namespace VMFConverter
             {
                 VMFDebug.CreateDebugImage("FinalTriangulation" + r, onDraw: (g) =>
                 {
-                    float scale = 0.2f;
+                    float scale = 0.12f;
                     Pen blackPen = new Pen(Color.Black, 3);
                     Pen greyPen = new Pen(Color.Gray, 3);
 

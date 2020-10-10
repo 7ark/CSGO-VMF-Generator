@@ -1,4 +1,4 @@
-﻿namespace VMFConverter
+﻿namespace VMFGenerator
 {
     public static class Textures
     {

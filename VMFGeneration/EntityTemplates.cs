@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Numerics;
 
-namespace VMFConverter
+namespace VMFGenerator
 {
     public static class EntityTemplates
     {

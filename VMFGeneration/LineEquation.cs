@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Numerics;
 using System.Text;
 
-namespace VMFConverter
+namespace VMFGenerator
 {
     public class LineEquation
     {

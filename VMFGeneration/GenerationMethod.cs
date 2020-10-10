@@ -8,7 +8,7 @@ using System.Numerics;
 using System.Security.Principal;
 using VMFGenerator;
 
-namespace VMFConverter
+namespace VMFGenerator
 {
     public class ImageGenerationMethod : GenerationMethod
     {
@@ -864,6 +864,32 @@ namespace VMFConverter
                 Data = new CubeShapeData()
                 {
                     Size = new Vector3(Thickness, Size.Y, Size.Z) * Scalar * 2
+                }
+            });
+
+            return shapes;
+        }
+    }
+
+    public class SimpleTemplateGenerationMethod : GenerationMethod
+    {
+        public override List<Shape> GetBrushes()
+        {
+            List<Shape> shapes = new List<Shape>();
+
+            shapes.Add(new Polygon()
+            {
+                Data = new PolygonShapeData()
+                {
+                    Depth = 32,
+                    Scalar = 512,
+                    PolygonPoints = new List<Vector2>()
+                    {
+                        new Vector2(-1, -1),
+                        new Vector2(1, -1),
+                        new Vector2(1, 1),
+                        new Vector2(-1, 1),
+                    }
                 }
             });
 

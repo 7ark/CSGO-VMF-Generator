@@ -5,7 +5,7 @@ using System.Linq;
 using System.Numerics;
 using VMFGenerator;
 
-namespace VMFConverter
+namespace VMFGenerator
 {
     #region Shapes
     public enum Direction { North, South, West, East }

@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Text;
-using VMFConverter;
+using VMFGenerator;
 
 namespace VMFGenerator
 {
@@ -13,7 +13,7 @@ namespace VMFGenerator
         public static void GetInput(out List<GenerationMethod> generationMethods, out List<string> entities)
         {
             //If enabled, will draw images to a created debug folder
-            VMFDebug.DebugMode = false;
+            VMFDebug.DebugMode = true;
 
             //Generation Methods
             generationMethods = new List<GenerationMethod>();
@@ -27,7 +27,7 @@ namespace VMFGenerator
                 Position = new Vector3(0, 0, 5f),
                 Texture = Textures.SKYBOX,
                 Scalar = 64,
-                Size = new Vector3(30, 50, 10),
+                Size = new Vector3(30, 30, 10),
                 Thickness = 0.5f
             });
 
