@@ -20,7 +20,7 @@ namespace VMFGenerator
             generationMethods.Add(new AimMapGenerationMethod()
             {
                 mapSize = 1024,
-                overrideMinStairsCount = 4
+                overrideMinStairsCount = 7
             });
             //generationMethods.Add(new ImageGenerationMethod()
             //{

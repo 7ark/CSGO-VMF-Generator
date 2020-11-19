@@ -582,6 +582,7 @@ namespace VMFGenerator
         public int StairWidth;
         public int Rise;
         public int Run;
+        public string Texture = Textures.DEV_MEASUREGENERIC01B;
         public Direction Direction;
         public int RailingThickness = 0;
     }
@@ -630,6 +631,7 @@ namespace VMFGenerator
                     case Direction.North:
                         shapes.Add(new Cube()
                         {
+                            Texture = data.Texture,
                             BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(0, run, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
@@ -641,6 +643,7 @@ namespace VMFGenerator
                     case Direction.South:
                         shapes.Add(new Cube()
                         {
+                            Texture = data.Texture,
                             BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(0, -run, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
@@ -652,6 +655,7 @@ namespace VMFGenerator
                     case Direction.West:
                         shapes.Add(new Cube()
                         {
+                            Texture = data.Texture,
                             BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(-run, 0, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
@@ -663,6 +667,7 @@ namespace VMFGenerator
                     case Direction.East:
                         shapes.Add(new Cube()
                         {
+                            Texture = data.Texture,
                             BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(run, 0, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
@@ -723,7 +728,7 @@ namespace VMFGenerator
                 shapes.Add(new Polygon()
                 {
                     BlockEntityID = data.BlockEntityID,
-                    Texture = Textures.DEV_MEASUREGENERIC01B,
+                    Texture = data.Texture,
                     Position = data.Position + perfectlyCenteredPosition + posChangeWidth * new Vector3(data.StairWidth * 0.5f + data.RailingThickness * 0.5f, data.StairWidth * 0.5f + data.RailingThickness * 0.5f, 0),
                     Data = new PolygonShapeData()
                     {
@@ -758,7 +763,7 @@ namespace VMFGenerator
                 shapes.Add(new Polygon()
                 {
                     BlockEntityID = data.BlockEntityID,
-                    Texture = Textures.DEV_MEASUREGENERIC01B,
+                    Texture = data.Texture,
                     Position = data.Position + perfectlyCenteredPosition + posChangeWidth * new Vector3(-data.StairWidth * 0.5f - data.RailingThickness * 0.5f, -data.StairWidth * 0.5f - data.RailingThickness * 0.5f, 0),
                     Data = new PolygonShapeData()
                     {
@@ -816,6 +821,7 @@ namespace VMFGenerator
 
     public class WallData
     {
+        public string Texture = Textures.DEV_MEASUREGENERIC01B;
         public int Height;
         public int Thickness;
         public bool CapEnd = true;
@@ -946,6 +952,7 @@ namespace VMFGenerator
                 finalPolygons.Add(
                     new Polygon()
                     {
+                        Texture = wallData.Texture,
                         Position = polygon.Position + new Vector3(0, 0, wallData.Height * 0.5f),
                         Data = new PolygonShapeData()
                         {

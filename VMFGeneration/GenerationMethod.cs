@@ -937,6 +937,7 @@ namespace VMFGenerator
 
             Polygon floor = new Polygon()
             {
+                Texture = Textures.DUST_STONEWALL02,
                 Position = new Vector3(0, 0, -16),
                 Data = new PolygonShapeData()
                 {
@@ -1008,12 +1009,13 @@ namespace VMFGenerator
 
             Queue<Vector2> pointsToAdd = new Queue<Vector2>(randomPoints);
 
-            int stairsToAdd = random.Next(overrideMinStairsCount == -1 ? 1 : overrideMinStairsCount, overrideMaxStairsCount == -1 ? mapSize / 100 : overrideMaxStairsCount);
+            int stairsToAdd = random.Next(overrideMinStairsCount == -1 ? 1 : overrideMinStairsCount, overrideMaxStairsCount == -1 ? mapSize / 80 : overrideMaxStairsCount);
             for (int i = 0; i < stairsToAdd; i++)
             {
                 Vector2 pos = pointsToAdd.Dequeue();
                 shapes.AddRange(StairsGenerator.Generate(new StairData()
                 {
+                    Texture = Textures.DUST_STONEWALL02,
                     Visgroup = Visgroups.TAR_LAYOUT,
                     RailingThickness = 8,
                     BlockEntityID = EntityTemplates.BlockEntityID++,
@@ -1036,30 +1038,14 @@ namespace VMFGenerator
             for (int i = 0; i < coverToAdd56; i++)
             {
                 Vector2 pos = pointsToAdd.Dequeue();
-                shapes.Add(new Cube()
-                {
-                    Position = new Vector3(pos.X, pos.Y, 28),
-                    Texture = Textures.DEV_MEASUREGENERIC01B,
-                    Data = new CubeShapeData()
-                    {
-                        Size = new Vector3(56, 56, 56)
-                    }
-                });
+                entities.Add(EntityTemplates.PropStatic(Models.DustCrateStyle264x64x64, origin: new Vector3(pos.X, pos.Y, 0)));
             }
 
             int coverToAdd64 = random.Next(overrideMin64BoxCount == -1 ? mapSize / 60 : overrideMin64BoxCount, overrideMax64BoxCount == -1 ? mapSize / 30 : overrideMax64BoxCount);
             for (int i = 0; i < coverToAdd64; i++)
             {
                 Vector2 pos = pointsToAdd.Dequeue();
-                shapes.Add(new Cube()
-                {
-                    Position = new Vector3(pos.X, pos.Y, 32),
-                    Texture = Textures.DEV_MEASUREGENERIC01B,
-                    Data = new CubeShapeData()
-                    {
-                        Size = new Vector3(64, 64, 64)
-                    }
-                });
+                entities.Add(EntityTemplates.PropStatic(Models.DustCrateStyle264x64x64, origin: new Vector3(pos.X, pos.Y, 0)));
             }
 
             Vector2 playerPoint = pointsToAdd.Dequeue();
@@ -1096,6 +1082,7 @@ namespace VMFGenerator
 
             shapes.AddRange(WallGenerator.CreateWalls(floor, new WallData()
             {
+                Texture = Textures.DUST_STONEWALL02,
                 Height = 256,
                 Thickness = 64,
                 facesIndicesToSkip = new List<int>()
