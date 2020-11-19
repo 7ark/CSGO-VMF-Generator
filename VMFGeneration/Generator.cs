@@ -72,23 +72,23 @@ namespace VMFGenerator
             }
 
             List<Shape> brushes = new List<Shape>();
-            Dictionary<int, List<Shape>> funcDetails = new Dictionary<int, List<Shape>>();
+            Dictionary<int, Tuple<string, List<Shape>>> blockEntities = new Dictionary<int, Tuple<string, List<Shape>>>();
 
             //Seperate the brushes from the func details
             for (int i = 0; i < shapes.Count; i++)
             {
-                if (shapes[i].FuncDetailID == -1)
+                if (shapes[i].BlockEntityID == -1)
                 {
                     brushes.Add(shapes[i]);
                 }
                 else
                 {
-                    if (!funcDetails.ContainsKey(shapes[i].FuncDetailID))
+                    if (!blockEntities.ContainsKey(shapes[i].BlockEntityID))
                     {
-                        funcDetails.Add(shapes[i].FuncDetailID, new List<Shape>());
+                        blockEntities.Add(shapes[i].BlockEntityID, new Tuple<string, List<Shape>>(shapes[i].EntityType.ToValue(), new List<Shape>()));
                     }
 
-                    funcDetails[shapes[i].FuncDetailID].Add(shapes[i]);
+                    blockEntities[shapes[i].BlockEntityID].Item2.Add(shapes[i]);
                 }
             }
 
@@ -122,13 +122,13 @@ namespace VMFGenerator
             }
 
             //Func details
-            foreach (int id in funcDetails.Keys)
+            foreach (int id in blockEntities.Keys)
             {
                 uniqueVMF += "entity" + Environment.NewLine;
                 uniqueVMF += "{" + Environment.NewLine;
                 uniqueVMF += "\t\"id\" \"" + (++EntityTemplates.LastID) + "\"" + Environment.NewLine;
-                uniqueVMF += "\t\"classname\" \"func_detail\"" + Environment.NewLine;
-                WriteShapes(ref uniqueVMF, funcDetails[id], true);
+                uniqueVMF += "\t\"classname\" \"" + blockEntities[id].Item1 + "\"" + Environment.NewLine;
+                WriteShapes(ref uniqueVMF, blockEntities[id].Item2, true);
                 uniqueVMF += "}" + Environment.NewLine;
             }
             Console.WriteLine("Generation Completed");
@@ -213,7 +213,12 @@ namespace VMFGenerator
             List<Shape> shapes = new List<Shape>();
             for (int i = 0; i < generationMethods.Count; i++)
             {
-                shapes.AddRange(generationMethods[i].GetBrushes());
+                List<string> ents;
+                shapes.AddRange(generationMethods[i].GetBrushes(out ents));
+                if(ents.Count > 0)
+                {
+                    entities.AddRange(ents);
+                }
             }
 
             List<Shape> finalShapeList = new List<Shape>();

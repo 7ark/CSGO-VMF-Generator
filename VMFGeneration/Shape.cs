@@ -468,7 +468,8 @@ namespace VMFGenerator
         public Shape() { }
         public Shape(Shape self)
         {
-            FuncDetailID = self.FuncDetailID;
+            BlockEntityID = self.BlockEntityID;
+            EntityType = self.EntityType;
             ID = self.ID;
             Position = self.Position;
             Sides = self.Sides;
@@ -478,7 +479,8 @@ namespace VMFGenerator
         }
 
         public string Visgroup = string.Empty;
-        public int FuncDetailID = -1;
+        public int BlockEntityID = -1;
+        public EntityTemplates.BlockEntityType EntityType = EntityTemplates.BlockEntityType.func_detail;
         public int ID;
         public Vector3 Position;
         public SolidSide[] Sides;
@@ -573,7 +575,8 @@ namespace VMFGenerator
     public class StairData
     {
         public string Visgroup;
-        public int FuncDetailId = -1;
+        public int BlockEntityID = -1;
+        public EntityTemplates.BlockEntityType EntityType = EntityTemplates.BlockEntityType.func_detail;
         public Vector3 Position;
         public int StairCount;
         public int StairWidth;
@@ -627,7 +630,7 @@ namespace VMFGenerator
                     case Direction.North:
                         shapes.Add(new Cube()
                         {
-                            FuncDetailID = data.FuncDetailId,
+                            BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(0, run, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
                             {
@@ -638,7 +641,7 @@ namespace VMFGenerator
                     case Direction.South:
                         shapes.Add(new Cube()
                         {
-                            FuncDetailID = data.FuncDetailId,
+                            BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(0, -run, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
                             {
@@ -649,7 +652,7 @@ namespace VMFGenerator
                     case Direction.West:
                         shapes.Add(new Cube()
                         {
-                            FuncDetailID = data.FuncDetailId,
+                            BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(-run, 0, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
                             {
@@ -660,7 +663,7 @@ namespace VMFGenerator
                     case Direction.East:
                         shapes.Add(new Cube()
                         {
-                            FuncDetailID = data.FuncDetailId,
+                            BlockEntityID = data.BlockEntityID,
                             Position = data.Position + new Vector3(run, 0, rise + data.Rise * 0.5f),
                             Data = new CubeShapeData()
                             {
@@ -683,7 +686,7 @@ namespace VMFGenerator
             //Clip Brush
             shapes.Add(new Polygon()
             {
-                FuncDetailID = data.FuncDetailId,
+                BlockEntityID = data.BlockEntityID,
                 Texture = Textures.CLIP,
                 Position = data.Position + perfectlyCenteredPosition,
                 Data = new PolygonShapeData()
@@ -719,7 +722,7 @@ namespace VMFGenerator
                 //Railing Left
                 shapes.Add(new Polygon()
                 {
-                    FuncDetailID = data.FuncDetailId,
+                    BlockEntityID = data.BlockEntityID,
                     Texture = Textures.DEV_MEASUREGENERIC01B,
                     Position = data.Position + perfectlyCenteredPosition + posChangeWidth * new Vector3(data.StairWidth * 0.5f + data.RailingThickness * 0.5f, data.StairWidth * 0.5f + data.RailingThickness * 0.5f, 0),
                     Data = new PolygonShapeData()
@@ -754,7 +757,7 @@ namespace VMFGenerator
                 //Railing Right
                 shapes.Add(new Polygon()
                 {
-                    FuncDetailID = data.FuncDetailId,
+                    BlockEntityID = data.BlockEntityID,
                     Texture = Textures.DEV_MEASUREGENERIC01B,
                     Position = data.Position + perfectlyCenteredPosition + posChangeWidth * new Vector3(-data.StairWidth * 0.5f - data.RailingThickness * 0.5f, -data.StairWidth * 0.5f - data.RailingThickness * 0.5f, 0),
                     Data = new PolygonShapeData()

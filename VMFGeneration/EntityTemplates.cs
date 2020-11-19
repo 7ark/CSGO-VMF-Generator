@@ -6,8 +6,29 @@ namespace VMFGenerator
 {
     public static class EntityTemplates
     {
-        public static int FuncDetailID = 0;
+        public static int BlockEntityID = 0;
         public static int LastID = -1;
+
+        public enum BlockEntityType { func_detail, func_buyzone_terrorist, func_buyzone_counterterrorist, func_buyzone_all }
+
+        public static string ToValue(this BlockEntityType type)
+        {
+            switch (type)
+            {
+                case BlockEntityType.func_buyzone_terrorist:
+                    return "func_buyzone\"" + Environment.NewLine +
+                        "\t\"TeamNum\" \"2";
+                case BlockEntityType.func_buyzone_counterterrorist:
+                    return "func_buyzone\"" + Environment.NewLine +
+                        "\t\"TeamNum\" \"3";
+                case BlockEntityType.func_buyzone_all:
+                    return "func_buyzone\"" + Environment.NewLine +
+                        "\t\"TeamNum\" \"0";
+            }
+
+            return type.ToString();
+        }
+
         public static string LightEnvironment(Color lightColor = new Color(), float brightness = 20, Color ambientLightColor = new Color(), float ambientBrightness = 200, Vector3 angles = new Vector3(), float pitch = -90, float sunSpreadAngle = 0, Vector3 origin = new Vector3())
         {
             if (lightColor.A == 0)

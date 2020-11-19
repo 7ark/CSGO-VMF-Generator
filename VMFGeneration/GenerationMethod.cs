@@ -20,8 +20,9 @@ namespace VMFGenerator
 
         public string InputFilePath;
 
-        public override List<Shape> GetBrushes()
+        public override List<Shape> GetBrushes(out List<string> entities)
         {
+            entities = new List<string>();
             List<Shape> shapes = new List<Shape>();
 
             if(!File.Exists(InputFilePath))
@@ -632,8 +633,9 @@ namespace VMFGenerator
 
     public class MiscGenerationMethod : GenerationMethod
     {
-        public override List<Shape> GetBrushes()
+        public override List<Shape> GetBrushes(out List<string> entities)
         {
+            entities = new List<string>();
             List<Shape> shapes = new List<Shape>();
 
             //Manaully made convex shape
@@ -710,7 +712,7 @@ namespace VMFGenerator
             {
                 Visgroup = Visgroups.TAR_LAYOUT,
                 RailingThickness = 8,
-                FuncDetailId = EntityTemplates.FuncDetailID++,
+                BlockEntityID = EntityTemplates.BlockEntityID++,
                 Position = new Vector3(-256, 0, 128),
                 Run = 12,
                 Rise = 8,
@@ -728,7 +730,7 @@ namespace VMFGenerator
             {
                 Visgroup = Visgroups.TAR_LAYOUT,
                 RailingThickness = 8,
-                FuncDetailId = EntityTemplates.FuncDetailID++,
+                BlockEntityID = EntityTemplates.BlockEntityID++,
                 Position = new Vector3(256, 0, 128),
                 Run = 12,
                 Rise = 8,
@@ -746,7 +748,7 @@ namespace VMFGenerator
             {
                 Visgroup = Visgroups.TAR_LAYOUT,
                 RailingThickness = 8,
-                FuncDetailId = EntityTemplates.FuncDetailID++,
+                BlockEntityID = EntityTemplates.BlockEntityID++,
                 Position = new Vector3(0, -256, 128),
                 Run = 12,
                 Rise = 8,
@@ -764,7 +766,7 @@ namespace VMFGenerator
             {
                 Visgroup = Visgroups.TAR_LAYOUT,
                 RailingThickness = 8,
-                FuncDetailId = EntityTemplates.FuncDetailID++,
+                BlockEntityID = EntityTemplates.BlockEntityID++,
                 Position = new Vector3(0, 256, 128),
                 Run = 12,
                 Rise = 8,
@@ -797,8 +799,9 @@ namespace VMFGenerator
         public int Scalar = 32;
         public float Thickness;
         public string Texture = Textures.DEV_MEASUREGENERIC01B;
-        public override List<Shape> GetBrushes()
+        public override List<Shape> GetBrushes(out List<string> entities)
         {
+            entities = new List<string>();
             List<Shape> shapes = new List<Shape>();
 
             //Top
@@ -871,10 +874,27 @@ namespace VMFGenerator
         }
     }
 
+    public class BasicSpawnsGenerationMethod : GenerationMethod
+    {
+        public override List<Shape> GetBrushes(out List<string> entities)
+        {
+            entities = new List<string>();
+            entities.Add(EntityTemplates.InfoPlayerTerrorist(
+                origin: new Vector3(0, -64, 32))
+                );
+            entities.Add(EntityTemplates.InfoPlayerCounterTerrorist(
+                origin: new Vector3(128, -64, 32))
+                );
+
+            return new List<Shape>();
+        }
+    }
+
     public class SimpleTemplateGenerationMethod : GenerationMethod
     {
-        public override List<Shape> GetBrushes()
+        public override List<Shape> GetBrushes(out List<string> entities)
         {
+            entities = new List<string>();
             List<Shape> shapes = new List<Shape>();
 
             shapes.Add(new Polygon()
@@ -896,9 +916,197 @@ namespace VMFGenerator
             return shapes;
         }
     }
+    public class AimMapGenerationMethod : GenerationMethod
+    {
+        public int MaxEnemies = 10;
+        public bool PlayerIsTerrorist = true;
+        public int mapSize = 768;
+
+        public int overrideMinStairsCount = -1;
+        public int overrideMaxStairsCount = -1;
+        public int overrideMin56BoxCount = -1;
+        public int overrideMax56BoxCount = -1;
+        public int overrideMin64BoxCount = -1;
+        public int overrideMax64BoxCount = -1;
+        public override List<Shape> GetBrushes(out List<string> entities)
+        {
+            entities = new List<string>();
+            List<Shape> shapes = new List<Shape>();
+
+            Random random = new Random();
+
+            Polygon floor = new Polygon()
+            {
+                Position = new Vector3(0, 0, -16),
+                Data = new PolygonShapeData()
+                {
+                    Depth = 32,
+                    Scalar = mapSize,
+                    PolygonPoints = new List<Vector2>()
+                    {
+                        new Vector2(-1, -1),
+                        new Vector2(1, -1),
+                        new Vector2(1, 1),
+                        new Vector2(-1, 1),
+                    }
+                }
+            };
+            shapes.Add(floor);
+
+            shapes.Add(new Polygon()
+            {
+                Position = new Vector3(0, 0, 112),
+                Texture = Textures.TRIGGER,
+                BlockEntityID = EntityTemplates.BlockEntityID++,
+                EntityType = EntityTemplates.BlockEntityType.func_buyzone_all,
+                Data = new PolygonShapeData()
+                {
+                    Depth = 256,
+                    Scalar = mapSize,
+                    PolygonPoints = new List<Vector2>()
+                    {
+                        new Vector2(-1, -1),
+                        new Vector2(1, -1),
+                        new Vector2(1, 1),
+                        new Vector2(-1, 1),
+                    }
+                }
+            });
+
+            mapSize -= 32;
+
+            float badDistance = mapSize / 8;
+            int amountOfPoints = mapSize / 7;
+            List<Vector2> randomPoints = new List<Vector2>();
+            for (int i = 0; i < amountOfPoints; i++)
+            {
+                Vector2 point = new Vector2(random.Next(-mapSize, mapSize + 1), random.Next(-mapSize, mapSize + 1));
+
+                while(true)
+                {
+                    bool goodToContinue = true;
+                    for (int j = 0; j < randomPoints.Count; j++)
+                    {
+                        float dist = Vector2.Distance(point, randomPoints[j]);
+                        if (dist < badDistance)
+                        {
+                            goodToContinue = false;
+                        }
+                    }
+
+                    if(goodToContinue)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        point = new Vector2(random.Next(-mapSize, mapSize + 1), random.Next(-mapSize, mapSize + 1));
+                    }
+                }
+                randomPoints.Add(point);
+            }
+
+            Queue<Vector2> pointsToAdd = new Queue<Vector2>(randomPoints);
+
+            int stairsToAdd = random.Next(overrideMinStairsCount == -1 ? 1 : overrideMinStairsCount, overrideMaxStairsCount == -1 ? mapSize / 100 : overrideMaxStairsCount);
+            for (int i = 0; i < stairsToAdd; i++)
+            {
+                Vector2 pos = pointsToAdd.Dequeue();
+                shapes.AddRange(StairsGenerator.Generate(new StairData()
+                {
+                    Visgroup = Visgroups.TAR_LAYOUT,
+                    RailingThickness = 8,
+                    BlockEntityID = EntityTemplates.BlockEntityID++,
+                    Position = new Vector3(pos.X, pos.Y, 0),
+                    Run = 12,
+                    Rise = 8,
+                    StairCount = 4 + (4 * random.Next(0,5)),
+                    StairWidth = 96 + (32 * random.Next(0, 5)),
+                    Direction = (Direction)random.Next(0, 4)
+                },
+                new RotationData()
+                {
+                    RotationAxis = new Vector3(0, 0, 1),
+                    RotationAngle = 0
+                }
+                ));
+            }
+
+            int coverToAdd56 = random.Next(overrideMin56BoxCount == -1 ? mapSize / 70 : overrideMin56BoxCount, overrideMax56BoxCount == -1 ? mapSize / 40 : overrideMax56BoxCount);
+            for (int i = 0; i < coverToAdd56; i++)
+            {
+                Vector2 pos = pointsToAdd.Dequeue();
+                shapes.Add(new Cube()
+                {
+                    Position = new Vector3(pos.X, pos.Y, 28),
+                    Texture = Textures.DEV_MEASUREGENERIC01B,
+                    Data = new CubeShapeData()
+                    {
+                        Size = new Vector3(56, 56, 56)
+                    }
+                });
+            }
+
+            int coverToAdd64 = random.Next(overrideMin64BoxCount == -1 ? mapSize / 60 : overrideMin64BoxCount, overrideMax64BoxCount == -1 ? mapSize / 30 : overrideMax64BoxCount);
+            for (int i = 0; i < coverToAdd64; i++)
+            {
+                Vector2 pos = pointsToAdd.Dequeue();
+                shapes.Add(new Cube()
+                {
+                    Position = new Vector3(pos.X, pos.Y, 32),
+                    Texture = Textures.DEV_MEASUREGENERIC01B,
+                    Data = new CubeShapeData()
+                    {
+                        Size = new Vector3(64, 64, 64)
+                    }
+                });
+            }
+
+            Vector2 playerPoint = pointsToAdd.Dequeue();
+            if (PlayerIsTerrorist)
+            {
+                entities.Add(EntityTemplates.InfoPlayerTerrorist(
+                    origin: new Vector3(playerPoint.X, playerPoint.Y, 4))
+                    );
+            }
+            else
+            {
+                entities.Add(EntityTemplates.InfoPlayerCounterTerrorist(
+                    origin: new Vector3(playerPoint.X, playerPoint.Y, 4))
+                    );
+            }
+
+            for (int i = 0; i < pointsToAdd.Count && i < MaxEnemies; i++)
+            {
+                Vector2 botPoint = pointsToAdd.Dequeue();
+                if(PlayerIsTerrorist)
+                {
+                    entities.Add(EntityTemplates.InfoPlayerCounterTerrorist(
+                        origin: new Vector3(botPoint.X, botPoint.Y, 4))
+                        );
+                }
+                else
+                {
+                    entities.Add(EntityTemplates.InfoPlayerTerrorist(
+                        origin: new Vector3(botPoint.X, botPoint.Y, 4))
+                        );
+                }
+            }
+
+
+            shapes.AddRange(WallGenerator.CreateWalls(floor, new WallData()
+            {
+                Height = 256,
+                Thickness = 64,
+                facesIndicesToSkip = new List<int>()
+            }));
+
+            return shapes;
+        }
+    }
 
     public abstract class GenerationMethod
     {
-        public abstract List<Shape> GetBrushes();
+        public abstract List<Shape> GetBrushes(out List<string> entities);
     }
 }

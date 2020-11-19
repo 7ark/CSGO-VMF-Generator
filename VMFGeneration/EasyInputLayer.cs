@@ -13,15 +13,19 @@ namespace VMFGenerator
         public static void GetInput(out List<GenerationMethod> generationMethods, out List<string> entities)
         {
             //If enabled, will draw images to a created debug folder
-            VMFDebug.DebugMode = true;
+            VMFDebug.DebugMode = false;
 
             //Generation Methods
             generationMethods = new List<GenerationMethod>();
-            //generationMethods.Add(new MiscGenerationMethod());
-            generationMethods.Add(new ImageGenerationMethod()
+            generationMethods.Add(new AimMapGenerationMethod()
             {
-                InputFilePath = Directory.GetCurrentDirectory() + @"\Input\InputImage.png"
+                mapSize = 1024,
+                overrideMinStairsCount = 4
             });
+            //generationMethods.Add(new ImageGenerationMethod()
+            //{
+            //    InputFilePath = Directory.GetCurrentDirectory() + @"\Input\InputImage.png"
+            //});
             generationMethods.Add(new HollowCubeGenerationMethod()
             {
                 Position = new Vector3(0, 0, 5f),
@@ -30,6 +34,7 @@ namespace VMFGenerator
                 Size = new Vector3(30, 30, 10),
                 Thickness = 0.5f
             });
+            //generationMethods.Add(new BasicSpawnsGenerationMethod());
 
             //Entities
             entities = new List<string>();
@@ -40,12 +45,6 @@ namespace VMFGenerator
                 brightness: 400,
                 angles: new Vector3(-40, -60, 0),
                 pitch: -60));
-            entities.Add(EntityTemplates.InfoPlayerTerrorist(
-                origin: new Vector3(0, -64, 32))
-                );
-            entities.Add(EntityTemplates.InfoPlayerCounterTerrorist(
-                origin: new Vector3(128, -64, 32))
-                );
         }
     }
 }
