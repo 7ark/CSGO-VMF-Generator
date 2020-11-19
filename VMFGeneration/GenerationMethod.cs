@@ -1092,6 +1092,157 @@ namespace VMFGenerator
         }
     }
 
+
+    public class BhopGenerationMethod : GenerationMethod
+    {
+        public override List<Shape> GetBrushes(out List<string> entities)
+        {
+            entities = new List<string>();
+            List<Shape> shapes = new List<Shape>();
+
+            int distanceBetween = 384;
+            int blockSize = 64;
+            int amountOfBlocks = 50;
+
+            int rotation = 0;
+            int rotationChange = 15;
+
+            Random random = new Random();
+
+            List<Vector3> positions = new List<Vector3>();
+
+            for (int i = 0; i < amountOfBlocks + 2; i++)
+            {
+                int dist = blockSize + distanceBetween;
+                int randomXDegree = rotation;//andom.Next(0, 360);
+                int randomYDegree = rotation;//random.Next(0, 360);
+                rotation += rotationChange;
+                if(random.Next(0, 7) == 0)
+                {
+                    rotationChange *= -1;
+                }
+                if(random.Next(0, 2) == 0)
+                {
+                    int changeAdjust = random.Next(-5, 6);
+                    rotationChange += changeAdjust;
+                    rotationChange = Math.Clamp(rotationChange, -25, 25);
+
+                    if(rotationChange >= 0)
+                    {
+                        if(rotationChange < 10)
+                        {
+                            rotationChange = 10;
+                        }
+                    }
+                    else
+                    {
+                        if (rotationChange > -10)
+                        {
+                            rotationChange = -10;
+                        }
+                    }
+                }
+
+                float x = (int)((180 / Math.PI) * Math.Cos(Math.PI * randomXDegree / 180.0));
+                float y = (int)((180 / Math.PI) * Math.Sin(Math.PI * randomYDegree / 180.0));
+                x /= 100;
+                y /= 100;
+                x *= dist;
+                y *= dist;
+
+                Vector3 finalPos = new Vector3(0, 0, 0);
+                if(i == 1)
+                {
+                    finalPos += new Vector3(x, y, 0);
+                }
+                else if(i != 0)
+                {
+                    finalPos = shapes[shapes.Count - 1].Position + new Vector3(x, y, 0);
+                }
+                positions.Add(finalPos);
+
+                if(i != 0 && i != amountOfBlocks + 1)
+                {
+                    shapes.Add(new Cube()
+                    {
+                        Position = finalPos,
+                        Texture = Textures.DEV_MEASUREGENERIC01B,
+                        Data = new CubeShapeData()
+                        {
+                            Size = new Vector3(blockSize, blockSize, blockSize)
+                        }
+                    });
+                }
+            }
+
+            int pathWidth = 256;
+
+            List<Vector2> points = new List<Vector2>();
+
+            for (int k = 0; k < 2; k++)
+            {
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    //Okay basically all the shit I'm doing here is getting the vertex normal of the current point
+                    //and basing how the wall should be made based off that, so all the walls end up as trapazoids.
+                    //The only exception is if a wall piece is missing, I then get the intersection based on which
+                    //side of the wall it is, and try to flatten it. It's not perfect but it works?
+                    int index1 = (i - 1) % positions.Count;
+                    if (index1 == -1)
+                    {
+                        index1 = positions.Count - 1;
+                    }
+                    int index2 = i % positions.Count;
+                    int index3 = (i + 1) % positions.Count;
+                    int index4 = (i + 2) % positions.Count;
+                    Vector2 a = new Vector2(positions[index1].X, positions[index1].Y);
+                    Vector2 b = new Vector2(positions[index2].X, positions[index2].Y);
+                    Vector2 c = new Vector2(positions[index3].X, positions[index3].Y);
+                    Vector2 d = new Vector2(positions[index4].X, positions[index4].Y);
+
+                    Vector2 abNormal = Vector2.Normalize(Shape.GetNormal2D(a, b));
+                    Vector2 bcNormal = Vector2.Normalize(Shape.GetNormal2D(b, c));
+                    Vector2 vertexNormalabc = Vector2.Normalize((abNormal + bcNormal)) * pathWidth;
+                    Vector2 cdNormal = Vector2.Normalize(Shape.GetNormal2D(c, d));
+                    Vector2 vertexNormalbcd = Vector2.Normalize((bcNormal + cdNormal)) * pathWidth;
+
+                    Vector2 point = new Vector2(positions[index2].X, positions[index2].Y) + vertexNormalabc;
+                    Vector2 point2 = new Vector2(positions[index3].X, positions[index3].Y) + vertexNormalbcd;
+                    if (!points.Contains(point))
+                        points.Add(point);
+                    if (!points.Contains(point2))
+                        points.Add(point2);
+                    //points.Add(c);
+                    //points.Add(b);
+                }
+
+                positions.Reverse();
+            }
+
+            Polygon floor = new Polygon()
+            {
+                Position = new Vector3(0, 0, -32),
+                Data = new PolygonShapeData()
+                {
+                    Depth = 32,
+                    Scalar = 1,
+                    PolygonPoints = points
+                }
+            };
+            //shapes.Add(floor);
+
+            //shapes.AddRange(WallGenerator.CreateWalls(floor, new WallData()
+            //{
+            //    Texture = Textures.DEV_MEASUREGENERIC01B,
+            //    Height = 512,
+            //    Thickness = 64,
+            //    facesIndicesToSkip = new List<int>()
+            //}));
+
+            return shapes;
+        }
+    }
+
     public abstract class GenerationMethod
     {
         public abstract List<Shape> GetBrushes(out List<string> entities);
