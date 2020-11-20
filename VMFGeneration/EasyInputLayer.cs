@@ -35,7 +35,7 @@ namespace VMFGenerator
             //    Thickness = 0.5f
             //});
             generationMethods.Add(new BhopGenerationMethod());
-            generationMethods.Add(new BasicSpawnsGenerationMethod());
+            //generationMethods.Add(new BasicSpawnsGenerationMethod());
 
             //Entities
             entities = new List<string>();

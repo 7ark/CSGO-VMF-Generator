@@ -1102,10 +1102,12 @@ namespace VMFGenerator
 
             int distanceBetween = 384;
             int blockSize = 64;
-            int amountOfBlocks = 50;
+            int amountOfBlocks = 75;
 
             int rotation = 0;
             int rotationChange = 15;
+
+            int pathWidth = 256;
 
             Random random = new Random();
 
@@ -1114,74 +1116,108 @@ namespace VMFGenerator
             for (int i = 0; i < amountOfBlocks + 2; i++)
             {
                 int dist = blockSize + distanceBetween;
-                int randomXDegree = rotation;//andom.Next(0, 360);
-                int randomYDegree = rotation;//random.Next(0, 360);
-                rotation += rotationChange;
-                if(random.Next(0, 7) == 0)
-                {
-                    rotationChange *= -1;
-                }
-                if(random.Next(0, 2) == 0)
-                {
-                    int changeAdjust = random.Next(-5, 6);
-                    rotationChange += changeAdjust;
-                    rotationChange = Math.Clamp(rotationChange, -25, 25);
 
-                    if(rotationChange >= 0)
+                Vector3 finalPos = new Vector3(0, 0, 0);
+                int safety = 0;
+
+                int currRot = rotation;
+
+                while(true)
+                {
+                    rotation = currRot;
+                    rotation += rotationChange;
+                    int randomXDegree = rotation;
+                    int randomYDegree = rotation;
+                    if (random.Next(0, 7) == 0 || safety > 1000)
                     {
-                        if(rotationChange < 10)
+                        rotationChange *= -1;
+                    }
+                    if (random.Next(0, 2) == 0)
+                    {
+                        int changeAdjust = random.Next(-5, 6);
+                        rotationChange += changeAdjust;
+                        rotationChange = Math.Clamp(rotationChange, safety > 5000 ? -40 : -25, safety > 1000 ? 40 : 25);
+
+                        if (rotationChange >= 0)
                         {
-                            rotationChange = 10;
+                            if (rotationChange < 10)
+                            {
+                                rotationChange = 10;
+                            }
                         }
+                        else
+                        {
+                            if (rotationChange > -10)
+                            {
+                                rotationChange = -10;
+                            }
+                        }
+                    }
+
+                    float x = (int)((180 / Math.PI) * Math.Cos(Math.PI * randomXDegree / 180.0));
+                    float y = (int)((180 / Math.PI) * Math.Sin(Math.PI * randomYDegree / 180.0));
+                    x /= 100;
+                    y /= 100;
+                    x *= dist;
+                    y *= dist;
+
+                    finalPos = new Vector3(0, 0, 0);
+                    if (i == 1)
+                    {
+                        finalPos += new Vector3(x, y, 0);
+                    }
+                    else if (i != 0)
+                    {
+                        finalPos += shapes[shapes.Count - 1].Position + new Vector3(x, y, 0);
+                    }
+
+                    bool goodPath = true;
+                    for (int j = 0; j < positions.Count - 4; j++)
+                    {
+                        if (Vector3.Distance(positions[j], finalPos) < pathWidth * (safety > 5000 ? 2.5f : 4f))
+                        {
+                            goodPath = false;
+                            break;
+                        }
+                    }
+
+                    if(goodPath)
+                    {
+                        break;
                     }
                     else
                     {
-                        if (rotationChange > -10)
+                        safety++;
+                        if(safety > 10000)
                         {
-                            rotationChange = -10;
+                            break;
                         }
                     }
                 }
 
-                float x = (int)((180 / Math.PI) * Math.Cos(Math.PI * randomXDegree / 180.0));
-                float y = (int)((180 / Math.PI) * Math.Sin(Math.PI * randomYDegree / 180.0));
-                x /= 100;
-                y /= 100;
-                x *= dist;
-                y *= dist;
-
-                Vector3 finalPos = new Vector3(0, 0, 0);
-                if(i == 1)
-                {
-                    finalPos += new Vector3(x, y, 0);
-                }
-                else if(i != 0)
-                {
-                    finalPos = shapes[shapes.Count - 1].Position + new Vector3(x, y, 0);
-                }
-                positions.Add(finalPos);
+                positions.Add(finalPos + new Vector3(0, 0, -blockSize * 2));
 
                 if(i != 0 && i != amountOfBlocks + 1)
                 {
                     shapes.Add(new Cube()
                     {
+                        BlockEntityID = EntityTemplates.BlockEntityID++,
+                        EntityType = EntityTemplates.BlockEntityType.func_detail,
                         Position = finalPos,
                         Texture = Textures.DEV_MEASUREGENERIC01B,
                         Data = new CubeShapeData()
                         {
-                            Size = new Vector3(blockSize, blockSize, blockSize)
+                            Size = new Vector3(blockSize, blockSize, blockSize * 6)
                         }
                     });
                 }
             }
 
-            int pathWidth = 256;
-
             List<Vector2> points = new List<Vector2>();
 
             for (int k = 0; k < 2; k++)
             {
-                for (int i = 0; i < positions.Count; i++)
+                for (int i = k == 0 ? 0 : 1; i < positions.Count; i++)
                 {
                     //Okay basically all the shit I'm doing here is getting the vertex normal of the current point
                     //and basing how the wall should be made based off that, so all the walls end up as trapazoids.
@@ -1210,8 +1246,8 @@ namespace VMFGenerator
                     Vector2 point2 = new Vector2(positions[index3].X, positions[index3].Y) + vertexNormalbcd;
                     if (!points.Contains(point))
                         points.Add(point);
-                    if (!points.Contains(point2))
-                        points.Add(point2);
+                    //if (!points.Contains(point2))
+                    //    points.Add(point2);
                     //points.Add(c);
                     //points.Add(b);
                 }
@@ -1219,25 +1255,65 @@ namespace VMFGenerator
                 positions.Reverse();
             }
 
-            Polygon floor = new Polygon()
+            shapes.Add(new Polygon()
             {
-                Position = new Vector3(0, 0, -32),
+                Texture = Textures.SKYBOX,
+                Position = new Vector3(0, 0, 512),
                 Data = new PolygonShapeData()
                 {
                     Depth = 32,
                     Scalar = 1,
-                    PolygonPoints = points
+                    PolygonPoints = new List<Vector2>(points)
+                }
+            });
+            Polygon floor = new Polygon()
+            {
+                Texture = Textures.DUST_CINDERBLOCK_CHECKERED01,
+                Position = new Vector3(0, 0, -96),
+                Data = new PolygonShapeData()
+                {
+                    Depth = 32,
+                    Scalar = 1,
+                    PolygonPoints = new List<Vector2>(points)
                 }
             };
-            //shapes.Add(floor);
+            shapes.Add(floor);
+            shapes.Add(new Polygon()
+            {
+                Texture = Textures.TRIGGER,
+                BlockEntityID = EntityTemplates.BlockEntityID++,
+                EntityType = EntityTemplates.BlockEntityType.trigger_hurt,
+                EntitySettings = new List<string>()
+                {
+                    "damage", "200",
+                    "damagecap", "200",
+                    "damagemodel", "0",
+                    "damagetype", "0",
+                    "nodmgforce", "0",
+                    "origin", "",
+                    "spawnflags", "4097",
+                    "StartDisabled", "0"
+                },
+                Position = new Vector3(0, 0, -96),
+                Data = new PolygonShapeData()
+                {
+                    Depth = 64,
+                    Scalar = 1,
+                    PolygonPoints = new List<Vector2>(points)
+                }
+            });
 
-            //shapes.AddRange(WallGenerator.CreateWalls(floor, new WallData()
-            //{
-            //    Texture = Textures.DEV_MEASUREGENERIC01B,
-            //    Height = 512,
-            //    Thickness = 64,
-            //    facesIndicesToSkip = new List<int>()
-            //}));
+            shapes.AddRange(WallGenerator.CreateWalls(floor, new WallData()
+            {
+                Texture = Textures.DEV_MEASUREGENERIC01B,
+                Height = 1024,
+                Thickness = 64,
+                facesIndicesToSkip = new List<int>()
+            }));
+
+            entities.Add(EntityTemplates.InfoPlayerTerrorist(
+                origin: new Vector3(positions[1].X, positions[1].Y, blockSize * 3 + 4))
+                );
 
             return shapes;
         }

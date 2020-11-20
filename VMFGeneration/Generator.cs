@@ -85,7 +85,18 @@ namespace VMFGenerator
                 {
                     if (!blockEntities.ContainsKey(shapes[i].BlockEntityID))
                     {
-                        blockEntities.Add(shapes[i].BlockEntityID, new Tuple<string, List<Shape>>(shapes[i].EntityType.ToValue(), new List<Shape>()));
+                        string values = shapes[i].EntityType.ToValue();
+
+                        if(shapes[i].EntitySettings.Count > 0)
+                        {
+                            values += "\"" + Environment.NewLine;
+                        }
+
+                        for (int j = 0; j < shapes[i].EntitySettings.Count; j += 2)
+                        {
+                            values += "\t\"" + shapes[i].EntitySettings[j] + "\" \"" + shapes[i].EntitySettings[j + 1] + (j + 1 == shapes[i].EntitySettings.Count - 1 ? string.Empty : "\"" + Environment.NewLine);
+                        }
+                        blockEntities.Add(shapes[i].BlockEntityID, new Tuple<string, List<Shape>>(values, new List<Shape>()));
                     }
 
                     blockEntities[shapes[i].BlockEntityID].Item2.Add(shapes[i]);

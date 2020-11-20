@@ -470,6 +470,7 @@ namespace VMFGenerator
         {
             BlockEntityID = self.BlockEntityID;
             EntityType = self.EntityType;
+            EntitySettings = self.EntitySettings;
             ID = self.ID;
             Position = self.Position;
             Sides = self.Sides;
@@ -481,6 +482,7 @@ namespace VMFGenerator
         public string Visgroup = string.Empty;
         public int BlockEntityID = -1;
         public EntityTemplates.BlockEntityType EntityType = EntityTemplates.BlockEntityType.func_detail;
+        public List<string> EntitySettings = new List<string>();
         public int ID;
         public Vector3 Position;
         public SolidSide[] Sides;

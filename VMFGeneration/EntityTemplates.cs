@@ -9,7 +9,7 @@ namespace VMFGenerator
         public static int BlockEntityID = 0;
         public static int LastID = -1;
 
-        public enum BlockEntityType { func_detail, func_buyzone_terrorist, func_buyzone_counterterrorist, func_buyzone_all }
+        public enum BlockEntityType { func_detail, func_buyzone_terrorist, func_buyzone_counterterrorist, func_buyzone_all, trigger_hurt }
 
         public static string ToValue(this BlockEntityType type)
         {
