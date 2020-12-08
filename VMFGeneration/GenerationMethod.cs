@@ -916,6 +916,40 @@ namespace VMFGenerator
             return shapes;
         }
     }
+    public class GridGenerationMethod : GenerationMethod
+    {
+        public int gridWidth = 16;
+        public int gridHeight = 16;
+        public int blockSize = 1024;
+        public int blockDepth = 64;
+        public List<SideFacing> displacementSidesPerBlock = new List<SideFacing>();
+        public override List<Shape> GetBrushes(out List<string> entities)
+        {
+            entities = new List<string>();
+            List<Shape> shapes = new List<Shape>();
+
+            int size = blockSize * 2;
+
+            for (int i = -gridWidth / 2; i < gridWidth / 2; i++)
+            {
+                for (int j = -gridHeight / 2; j < gridHeight / 2; j++)
+                {
+                    shapes.Add(new Cube()
+                    {
+                        SidesAreDisplacements = displacementSidesPerBlock,
+                        Position = new Vector3(i * size / 2, j * size / 2, 0),
+                        Texture = Textures.DEV_MEASUREGENERIC01B,
+                        Data = new CubeShapeData()
+                        {
+                            Size = new Vector3(size / 2, size / 2, blockDepth)
+                        }
+                    });
+                }
+            }
+
+            return shapes;
+        }
+    }
     public class AimMapGenerationMethod : GenerationMethod
     {
         public int MaxEnemies = 10;

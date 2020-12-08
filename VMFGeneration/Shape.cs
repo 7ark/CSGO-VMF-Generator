@@ -9,11 +9,13 @@ namespace VMFGenerator
 {
     #region Shapes
     public enum Direction { North, South, West, East }
+    public enum SideFacing { Top, Bottom, Back, Front, Left, Right }
     public struct SolidSide
     {
         public int ID;
         public Vector3[] Plane;
         public Vector4[] UV;
+        public bool Displacement;
     }
 
     public class PolygonShapeData : ShapeData
@@ -486,6 +488,7 @@ namespace VMFGenerator
         public int ID;
         public Vector3 Position;
         public SolidSide[] Sides;
+        public List<SideFacing> SidesAreDisplacements = new List<SideFacing>();
         public ShapeData Data;
         public string Texture = Textures.DEV_MEASUREGENERIC01B;
 
@@ -503,6 +506,11 @@ namespace VMFGenerator
                 sideCenter /= Sides[i].Plane.Length;
 
                 center += sideCenter;
+
+                if(SidesAreDisplacements.Contains((SideFacing)i))
+                {
+                    Sides[i].Displacement = true;
+                }
             }
             center /= Sides.Length;
 

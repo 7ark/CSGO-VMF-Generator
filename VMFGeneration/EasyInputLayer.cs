@@ -34,7 +34,11 @@ namespace VMFGenerator
             //    Size = new Vector3(30, 30, 10),
             //    Thickness = 0.5f
             //});
-            generationMethods.Add(new BhopGenerationMethod());
+            generationMethods.Add(new GridGenerationMethod()
+            {
+                displacementSidesPerBlock = { SideFacing.Top },
+                blockDepth = 256
+            });
             //generationMethods.Add(new BasicSpawnsGenerationMethod());
 
             //Entities
